@@ -1,25 +1,23 @@
 import * as THREE from 'three';
+import { mu, stateAt, ellipsePoints } from '../physics/kepler.js';
+import { AU } from '../data/worlds.js';
+import { toScene } from './system.js';
 
-// The 2014 Comet: an eccentric Kepler orbit with an ion tail that always points away from the star.
-export function createComet({ a = 52, e = 0.72, period = 70, inclination = 0.32, node = 1.1 } = {}) {
+// The 2014 Comet: a massless body on a real Halley-type Kepler orbit,
+// with an ion tail that always points away from the star.
+export function createComet(def) {
   const group = new THREE.Group();
   group.name = 'comet';
-  const plane = new THREE.Group();
-  plane.rotation.set(inclination, node, 0, 'YXZ');
+  const plane = new THREE.Group(); // kept so the head can live in the same frame as before
   group.add(plane);
-
-  const b = a * Math.sqrt(1 - e * e);
-  const focusOffset = a * e; // star sits at one focus
+  const gm = mu(1);
 
   // Dashed orbit path
-  const pts = [];
-  for (let i = 0; i <= 360; i++) {
-    const E = (i / 360) * Math.PI * 2;
-    pts.push(new THREE.Vector3(a * Math.cos(E) - focusOffset, 0, b * Math.sin(E)));
-  }
+  const v = new THREE.Vector3();
+  const pts = ellipsePoints(def.orbit, 720).map((p) => toScene(p, AU, v).clone());
   const path = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(pts),
-    new THREE.LineDashedMaterial({ color: 0x9fe6ff, transparent: true, opacity: 0.22, dashSize: 0.8, gapSize: 0.8 })
+    new THREE.LineDashedMaterial({ color: 0x9fe6ff, transparent: true, opacity: 0.22, dashSize: 2, gapSize: 2 })
   );
   path.computeLineDistances();
   plane.add(path);
@@ -88,16 +86,10 @@ export function createComet({ a = 52, e = 0.72, period = 70, inclination = 0.32,
   let last = 0;
   let spawnAcc = 0;
 
-  function solveKepler(M) {
-    let E = M;
-    for (let i = 0; i < 6; i++) E -= (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
-    return E;
-  }
-
-  function update(t, orbitTime) {
-    const M = ((orbitTime / period) * Math.PI * 2 + 2.4) % (Math.PI * 2);
-    const E = solveKepler(M);
-    head.position.set(a * Math.cos(E) - focusOffset, 0, b * Math.sin(E));
+  const state = [0, 0, 0];
+  function update(t, simDays) {
+    stateAt(def.orbit, gm, simDays, state);
+    toScene(state, AU, head.position);
     head.getWorldPosition(headWorld);
     nucleus.rotation.y = t * 0.6;
 

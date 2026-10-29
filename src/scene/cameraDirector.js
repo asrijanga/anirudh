@@ -1,8 +1,15 @@
 import * as THREE from 'three';
 
 // Moves the camera between the overview and individual worlds, following them as they orbit.
-export function createCameraDirector({ camera, controls, getTarget, reducedMotion = false }) {
-  const HOME_POS = new THREE.Vector3(0, 26, 70);
+export function createCameraDirector({
+  camera,
+  controls,
+  getTarget,
+  reducedMotion = false,
+  home = new THREE.Vector3(0, 26, 70),
+  introFrom = new THREE.Vector3(-40, 90, 260),
+}) {
+  const HOME_POS = home;
   const HOME_TARGET = new THREE.Vector3(0, 0, 0);
   const UP = new THREE.Vector3(0, 1, 0);
 
@@ -57,7 +64,7 @@ export function createCameraDirector({ camera, controls, getTarget, reducedMotio
   }
 
   function intro() {
-    camera.position.set(-40, 90, 260);
+    camera.position.copy(introFrom);
     controls.target.copy(HOME_TARGET);
     overview(4200);
   }

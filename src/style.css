@@ -109,6 +109,7 @@ button { font: inherit; }
 .card-timeline { list-style: none; margin: 0; padding: 0; }
 .card-timeline li { margin: 0 0 8px; padding-left: 12ch; text-indent: -12ch; }
 .card-timeline .when { color: var(--amber); white-space: pre; }
+.card-orbit { margin: 0; font: 12.5px/1.6 var(--mono); color: var(--cyan); white-space: pre-wrap; }
 .card-facts { list-style: none; margin: 0; padding: 0; }
 .card-facts li::before { content: '- '; color: var(--muted); }
 .card-link-wrap { margin: 0; overflow-wrap: anywhere; }
@@ -157,6 +158,13 @@ body.focused .term-out { max-height: 7.75em; }
   color: var(--ink); font: 16px var(--mono); caret-color: var(--amber);
 }
 
+/* ---------- sim status ---------- */
+.status {
+  position: fixed; right: clamp(16px, 4vw, 48px); top: clamp(16px, 5vh, 48px); z-index: 6; margin: 0;
+  font-size: 12px; color: var(--muted); pointer-events: none; text-align: right;
+}
+body.focused .status { display: none; }
+
 /* ---------- loader ---------- */
 .loader {
   position: fixed; inset: 0; z-index: 20; display: grid; place-content: center;
@@ -194,6 +202,7 @@ body.focused .term-out { max-height: 7.75em; }
   .term-out { max-height: 26vh; }
   body.focused .term-out { display: none; }
   .term-prompt { font-size: 12px; }
+  .status { top: auto; bottom: calc(var(--term-h) + 4px); left: 16px; right: 16px; text-align: left; font-size: 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

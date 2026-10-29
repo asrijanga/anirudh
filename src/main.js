@@ -15,10 +15,15 @@ import { createLabels } from './ui/labels.js';
 import { createStoryCard } from './ui/storyCard.js';
 import { createTerminal } from './ui/terminal.js';
 import { createCommands } from './ui/commands.js';
-import { worlds, star as starDef, comet as cometDef, profile } from './data/worlds.js';
+import { worlds, star as starDef, comet as cometDef, profile, SUN, AU } from './data/worlds.js';
+import { AU_KM } from './physics/kepler.js';
+import { describeOrbit } from './physics/describe.js';
 
-const STAR_RADIUS = 4;
-const TOUR = ['star', 'emerald', 'hashport', 'railhead', 'ferris', 'verdance', 'ares', 'swift', 'comet'];
+const STAR_RADIUS = SUN.displayRadius;
+const STAR_TRUE_RADIUS = (SUN.radiusKm / AU_KM) * AU;
+// Outward from home, then the rest of the system.
+const TOUR = ['star', 'emerald', 'hashport', 'verdance', 'ares', 'railhead', 'ferris', 'swift', 'comet'];
+const WARPS = { pause: 0, '1d': 1, '1w': 7, '1m': 30.44, '1y': 365.25 };
 const canvas = document.getElementById('scene');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -45,40 +50,49 @@ function start() {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x07080c);
-  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 3000);
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 6000);
   camera.position.set(-40, 90, 260);
 
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
-  controls.minDistance = 2;
-  controls.maxDistance = 160;
+  controls.minDistance = 0.002;
+  controls.maxDistance = 480;
   controls.enablePan = false;
   controls.autoRotateSpeed = 0.25;
 
   const starfield = createStarfield();
   const star = createStar(STAR_RADIUS);
   const system = createSystem(worlds, decorate);
-  const comet = createComet();
+  const comet = createComet(cometDef);
   scene.add(starfield, star, system.root, comet.group);
   scene.add(new THREE.AmbientLight(0x404a70, 0.35));
 
   // ---- lookup helpers ----
   const defs = new Map([['star', starDef], ...worlds.map((w) => [w.id, w]), ['comet', cometDef]]);
+  const byId = Object.fromEntries(defs);
+  const starRadius = () => STAR_RADIUS * star.scale.x;
   const getTarget = (id, out) => {
     if (id === 'star') return out.set(0, 0, 0);
     if (id === 'comet') return comet.getPosition(out);
     return system.worldPosition(id, out);
   };
+  // Frame each world by its current (readable or true) size.
   const viewInfo = (id) => {
-    if (id === 'star') return { offset: new THREE.Vector3(6, 4, 15) };
+    if (id === 'star') return { offset: new THREE.Vector3(1.5, 1, 3.8).multiplyScalar(starRadius()) };
     if (id === 'comet') return { distance: 9 };
-    const def = defs.get(id);
-    const k = { railhead: 4.4, hashport: 5.5, ferris: 6 }[id] ?? 4.8;
-    return { distance: def.radius * k + 1.2 };
+    const k = { railhead: 4.6, hashport: 5.5, ferris: 6 }[id] ?? 5;
+    return { distance: system.currentRadius(id) * k };
   };
 
-  const director = createCameraDirector({ camera, controls, getTarget, reducedMotion });
+  const director = createCameraDirector({
+    camera,
+    controls,
+    getTarget,
+    reducedMotion,
+    home: new THREE.Vector3(0, 62, 128),
+    introFrom: new THREE.Vector3(-90, 210, 470),
+  });
 
   // Pause the idle drift while someone is steering, resume after a few seconds.
   let idleTimer;
@@ -100,19 +114,19 @@ function start() {
   const labels = createLabels(
     labelLayer,
     [
-      { id: 'star', name: 'anirudh', tag: 'the star', getPosition: (v) => v.set(0, STAR_RADIUS * 1.25, 0) },
+      { id: 'star', name: 'anirudh', tag: 'the star', getPosition: (v) => v.set(0, starRadius() * 1.25, 0) },
       ...worlds.map((w) => ({
         id: w.id,
         name: w.id,
         tag: w.tag,
-        getPosition: (v) => system.worldPosition(w.id, v).add(up.set(0, w.radius * 1.5, 0)),
+        getPosition: (v) => system.worldPosition(w.id, v).add(up.set(0, system.currentRadius(w.id) * 1.5, 0)),
         // moons only get a label once you're close enough to tell them apart
         showWhen: w.parent ? (p) => camera.position.distanceTo(p) < 30 : undefined,
       })),
       { id: 'comet', name: 'comet', tag: 'the journey', getPosition: (v) => comet.getPosition(v).add(up.set(0, 1, 0)) },
     ],
     camera,
-    STAR_RADIUS,
+    starRadius,
     (id) => visit(id)
   );
 
@@ -129,7 +143,7 @@ function start() {
   function visit(id) {
     currentId = id;
     director.focus(id, viewInfo(id));
-    card.show(defs.get(id), TOUR.indexOf(id), TOUR.length);
+    card.show(defs.get(id), TOUR.indexOf(id), TOUR.length, describeOrbit(defs.get(id), byId));
     labels.setActive(id);
     document.body.classList.add('focused');
     title.classList.add('dim');
@@ -203,6 +217,39 @@ function start() {
     toast('railhead express: all aboard');
   }
 
+  // ---- simulated time: days since the page loaded, starting from today's date ----
+  const epoch = new Date();
+  let simDays = 0;
+  let warp = reducedMotion ? WARPS['1d'] : WARPS['1w'];
+  const statusEl = document.getElementById('status');
+  const warpLabel = () => Object.entries(WARPS).find(([, v]) => v === warp)?.[0] ?? `${warp}d`;
+  function renderStatus() {
+    const date = new Date(epoch.getTime() + simDays * 86400000).toISOString().slice(0, 10);
+    const rate = warp === 0 ? 'paused' : `${warpLabel()}/s`;
+    statusEl.textContent = `${date} · ${rate} · sizes ${system.trueScale ? 'true' : 'compressed √'} · distances true`;
+  }
+  const sim = {
+    warps: Object.keys(WARPS),
+    setWarp(name) {
+      if (!(name in WARPS)) return false;
+      warp = WARPS[name];
+      renderStatus();
+      return true;
+    },
+    get warp() {
+      return warpLabel();
+    },
+    setTrueScale(on) {
+      system.setTrueScale(on);
+      renderStatus();
+      // re-frame whatever we're looking at once the sizes have settled
+      if (currentId) setTimeout(() => currentId && director.focus(currentId, viewInfo(currentId)), 900);
+    },
+    get date() {
+      return new Date(epoch.getTime() + simDays * 86400000);
+    },
+  };
+
   // ---- the shell ----
   const shell = createCommands({
     tour: TOUR,
@@ -214,6 +261,8 @@ function start() {
     current: () => currentId,
     slackPing,
     choo,
+    sim,
+    describe: (id) => describeOrbit(defs.get(id), byId),
   });
   const term = createTerminal(document.getElementById('term'), {
     commands: shell.commands,
@@ -305,18 +354,28 @@ function start() {
   });
 
   const timer = new THREE.Timer();
-  const orbitSpeed = reducedMotion ? 0.25 : 1;
+  let lastT = 0;
+  let statusTick = 0;
   renderer.setAnimationLoop((now) => {
     timer.update(now);
     const t = timer.getElapsed();
     starfield.userData.update(t);
     star.userData.update(t);
-    system.update(t, t * orbitSpeed);
-    comet.update(t, t * orbitSpeed);
+    const dt = Math.min(t - lastT, 0.1);
+    lastT = t;
+    const dtDays = dt * warp;
+    simDays += dtDays;
+    if ((statusTick += dt) > 0.25) (statusTick = 0), renderStatus();
+    system.update(t, simDays, dt, dtDays);
+    star.scale.setScalar(Math.pow(STAR_TRUE_RADIUS / STAR_RADIUS, 1 - system.sizeMix));
+    comet.update(t, simDays);
     updatePings();
     system.bodies.get('verdance').extras.setCameraDistance(camera.position.distanceTo(system.worldPosition('verdance')));
     starfield.rotation.y = t * 0.003;
     director.update();
+    // keep depth precision sensible from orbit-wide views down to true-scale planets
+    camera.near = THREE.MathUtils.clamp(camera.position.distanceTo(controls.target) * 0.02, 0.0002, 0.5);
+    camera.updateProjectionMatrix();
     composer.render();
     labels.update(width, height);
   });
