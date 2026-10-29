@@ -4,6 +4,7 @@ import './style.css';
 import { createStarfield } from './scene/starfield.js';
 import { createStar } from './scene/star.js';
 import { createSystem } from './scene/system.js';
+import { decorate } from './scene/decorations.js';
 import { createLabels } from './ui/labels.js';
 import { worlds, star as starDef } from './data/worlds.js';
 
@@ -46,7 +47,7 @@ function start() {
 
   const starfield = createStarfield();
   const star = createStar(STAR_RADIUS);
-  const system = createSystem(worlds);
+  const system = createSystem(worlds, decorate);
   scene.add(starfield, star, system.root);
   scene.add(new THREE.AmbientLight(0x404a70, 0.35));
 
@@ -102,6 +103,8 @@ function start() {
     starfield.userData.update(t);
     star.userData.update(t);
     system.update(t, t);
+    const verdance = system.bodies.get('verdance');
+    verdance.extras.setCameraDistance(camera.position.distanceTo(system.worldPosition('verdance')));
     starfield.rotation.y = t * 0.003;
     controls.update();
     renderer.render(scene, camera);
