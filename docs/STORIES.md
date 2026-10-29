@@ -236,3 +236,14 @@ Acceptance criteria
 - No rain.
 - Clicks map straight from UV to character cell, now that there's no distortion.
 - Portrait framing centres the screen.
+
+## Story 11 — Bigger Screen
+*Feedback: "screen should be bigger, lose the keyboard."*
+
+Acceptance criteria
+- The desk keyboard is removed.
+- The camera looks at the screen almost head-on, framed so the panel fills
+  about 93% of the view with a sliver of city around its neon edge.
+- In portrait the panel stretches to the phone's shape (up to 1.2 × 2.6
+  units, on a matching taller canvas), so the text fills the phone instead
+  of a short box in the middle.
