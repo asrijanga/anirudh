@@ -5,6 +5,8 @@ export function createStoryCard(root, { onClose, onPrev, onNext }) {
       <p class="card-tag"></p>
       <h2 class="card-name"></h2>
       <div class="card-log"></div>
+      <ol class="card-timeline"></ol>
+      <p class="card-coda"></p>
       <ul class="card-facts"></ul>
       <a class="card-link" target="_blank" rel="noopener"></a>
     </div>
@@ -47,6 +49,20 @@ export function createStoryCard(root, { onClose, onPrev, onNext }) {
       p.textContent = para;
       log.appendChild(p);
     }
+    const timeline = $('.card-timeline');
+    timeline.innerHTML = '';
+    for (const { when, what } of def.timeline ?? []) {
+      const li = document.createElement('li');
+      const time = document.createElement('span');
+      time.className = 'when';
+      time.textContent = when;
+      li.append(time, document.createTextNode(what));
+      timeline.appendChild(li);
+    }
+    const coda = $('.card-coda');
+    coda.textContent = def.coda ?? '';
+    coda.hidden = !def.coda;
+
     const facts = $('.card-facts');
     facts.innerHTML = '';
     for (const f of def.facts ?? []) {

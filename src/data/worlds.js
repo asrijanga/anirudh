@@ -172,3 +172,25 @@ export const worlds = [
     link: { label: 'garden-game', href: gh('garden-game') },
   },
 ];
+
+// The 2014 Comet carries the timeline. Dates are when each public repo was created.
+export const comet = {
+  id: 'comet',
+  name: 'The 2014 Comet',
+  tag: 'The journey so far',
+  radius: 0.4,
+  log: [
+    'Some things in a system only come around now and then. This comet left the outer dark in 2014 and has been falling inwards ever since, faster the closer it gets.',
+  ],
+  timeline: [
+    { when: 'Apr 2014', what: 'Joins GitHub as asrijanga. The comet is spotted.' },
+    { when: '2014 → 2026', what: 'A long, quiet stretch on the public timeline. Plenty happened; it just wasn\'t pushed here.' },
+    { when: 'Sep 2026', what: 'solar-system: "a simulation of all the known worlds". The same day, a second system in Rust and Bevy.' },
+    { when: 'Oct 2026', what: 'Real data arrives: Mars, then Mercury.' },
+    { when: 'Oct 2026', what: 'garden-game sprouts, then train-game lays its first track.' },
+    { when: 'Now', what: 'System Anirudh comes online. You are here.' },
+  ],
+  coda: 'P.S. This system keeps two secrets. Try typing "slack". Or "choo".',
+  facts: ['Perihelion: soon', 'Tail: always points away from the star'],
+  link: { label: 'github.com/asrijanga', href: 'https://github.com/asrijanga' },
+};

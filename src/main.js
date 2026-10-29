@@ -1,17 +1,22 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import './style.css';
 import { createStarfield } from './scene/starfield.js';
 import { createStar } from './scene/star.js';
 import { createSystem } from './scene/system.js';
-import { decorate } from './scene/decorations.js';
+import { decorate, controlsState } from './scene/decorations.js';
+import { createComet } from './scene/comet.js';
 import { createCameraDirector } from './scene/cameraDirector.js';
 import { createLabels } from './ui/labels.js';
 import { createStoryCard } from './ui/storyCard.js';
-import { worlds, star as starDef } from './data/worlds.js';
+import { worlds, star as starDef, comet as cometDef } from './data/worlds.js';
 
 const STAR_RADIUS = 4;
-const TOUR = ['star', 'emerald', 'hashport', 'railhead', 'ferris', 'verdance', 'ares', 'swift'];
+const TOUR = ['star', 'emerald', 'hashport', 'railhead', 'ferris', 'verdance', 'ares', 'swift', 'comet'];
 const canvas = document.getElementById('scene');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -37,7 +42,9 @@ function start() {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x05060f);
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 3000);
+  camera.position.set(-40, 90, 260);
 
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
@@ -50,14 +57,20 @@ function start() {
   const starfield = createStarfield();
   const star = createStar(STAR_RADIUS);
   const system = createSystem(worlds, decorate);
-  scene.add(starfield, star, system.root);
+  const comet = createComet();
+  scene.add(starfield, star, system.root, comet.group);
   scene.add(new THREE.AmbientLight(0x404a70, 0.35));
 
   // ---- lookup helpers ----
-  const defs = new Map([['star', starDef], ...worlds.map((w) => [w.id, w])]);
-  const getTarget = (id, out) => (id === 'star' ? out.set(0, 0, 0) : system.worldPosition(id, out));
+  const defs = new Map([['star', starDef], ['comet', cometDef], ...worlds.map((w) => [w.id, w])]);
+  const getTarget = (id, out) => {
+    if (id === 'star') return out.set(0, 0, 0);
+    if (id === 'comet') return comet.getPosition(out);
+    return system.worldPosition(id, out);
+  };
   const viewInfo = (id) => {
     if (id === 'star') return { offset: new THREE.Vector3(6, 4, 15) };
+    if (id === 'comet') return { distance: 9 };
     const def = defs.get(id);
     const k = { railhead: 4.4, hashport: 5.5, ferris: 6 }[id] ?? 4.8;
     return { distance: def.radius * k + 1.2 };
@@ -92,6 +105,7 @@ function start() {
         tag: w.tag,
         getPosition: (v) => system.worldPosition(w.id, v).add(up.set(0, w.radius * 1.5, 0)),
       })),
+      { id: 'comet', name: 'The 2014 Comet', tag: 'the journey', getPosition: (v) => comet.getPosition(v).add(up.set(0, 1, 0)) },
     ],
     camera,
     STAR_RADIUS,
@@ -154,8 +168,9 @@ function start() {
   // ---- picking: a click (not a drag) on a world flies there ----
   const raycaster = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
-  const pickables = [star.userData.surface];
+  const pickables = [star.userData.surface, comet.head];
   star.userData.surface.userData.worldId = 'star';
+  comet.head.userData.worldId = 'comet';
   for (const [id, entry] of system.bodies) {
     entry.body.userData.worldId = id;
     pickables.push(entry.body);
@@ -172,6 +187,13 @@ function start() {
     while (o && !o.userData.worldId) o = o.parent;
     if (o) visit(o.userData.worldId);
   });
+
+  // ---- post-processing: bloom on the star, glows and comet ----
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.3, 0.9);
+  composer.addPass(bloom);
+  composer.addPass(new OutputPass());
 
   // ---- sizing: shift the projection so the focused world sits beside the card ----
   let width = 0;
@@ -190,11 +212,82 @@ function start() {
     else camera.clearViewOffset();
     camera.updateProjectionMatrix();
     starfield.userData.setPixelRatio(pr);
+    comet.setPixelRatio(pr);
+    composer.setPixelRatio(mobile ? Math.min(pr, 1.5) : pr);
+    composer.setSize(width, height);
   }
   window.addEventListener('resize', resize);
   resize();
 
-  director.intro();
+  // ---- easter eggs: type "slack" or "choo" ----
+  const toastEl = document.getElementById('toast');
+  let toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3200);
+  }
+
+  const pings = [];
+  const pingGeo = new THREE.SphereGeometry(0.18, 10, 10);
+  function slackPing() {
+    system.bodies.get('hashport').extras.ping();
+    const from = new THREE.Vector3();
+    for (const id of [...system.bodies.keys(), 'comet']) {
+      const mesh = new THREE.Mesh(pingGeo, new THREE.MeshBasicMaterial({ color: '#ecb22e', transparent: true }));
+      scene.add(mesh);
+      pings.push({ mesh, from: getTarget(id, from).clone(), start: performance.now(), dur: 1400 + Math.random() * 600 });
+    }
+    toast(`#general · ${system.bodies.size + 1} worlds said hi to Anirudh`);
+  }
+  function updatePings() {
+    const now = performance.now();
+    for (let i = pings.length - 1; i >= 0; i--) {
+      const p = pings[i];
+      const k = (now - p.start) / p.dur;
+      if (k >= 1) {
+        scene.remove(p.mesh);
+        p.mesh.material.dispose();
+        pings.splice(i, 1);
+        continue;
+      }
+      const e = 1 - Math.pow(1 - k, 3);
+      p.mesh.position.copy(p.from).multiplyScalar(1 - e);
+      p.mesh.position.y += Math.sin(e * Math.PI) * 3;
+      p.mesh.material.opacity = 1 - k * 0.6;
+    }
+  }
+
+  let chooTimer;
+  function choo() {
+    controlsState.trainSpeed = 7;
+    clearTimeout(chooTimer);
+    chooTimer = setTimeout(() => (controlsState.trainSpeed = 1), 8000);
+    toast('Railhead express: all aboard. Choo choo!');
+  }
+
+  let typed = '';
+  window.addEventListener('keydown', (e) => {
+    if (e.key.length !== 1) return;
+    typed = (typed + e.key.toLowerCase()).slice(-8);
+    if (typed.endsWith('slack')) slackPing();
+    else if (typed.endsWith('choo')) choo();
+  });
+
+  // ---- boot: compile shaders behind the loader, then fly in ----
+  const loader = document.getElementById('loader');
+  const steps = [...loader.querySelectorAll('li')];
+  const stepDelay = reducedMotion ? 0 : 220;
+  const ticking = Promise.all(
+    steps.map((li, i) => new Promise((r) => setTimeout(() => (li.classList.add('on'), r()), i * stepDelay)))
+  );
+  Promise.all([renderer.compileAsync(scene, camera).catch(() => {}), ticking]).then(() => {
+    setTimeout(() => {
+      loader.classList.add('done');
+      director.intro();
+    }, stepDelay * 1.5);
+  });
 
   const timer = new THREE.Timer();
   const orbitSpeed = reducedMotion ? 0.25 : 1;
@@ -204,10 +297,12 @@ function start() {
     starfield.userData.update(t);
     star.userData.update(t);
     system.update(t, t * orbitSpeed);
+    comet.update(t, t * orbitSpeed);
+    updatePings();
     system.bodies.get('verdance').extras.setCameraDistance(camera.position.distanceTo(system.worldPosition('verdance')));
     starfield.rotation.y = t * 0.003;
     director.update();
-    renderer.render(scene, camera);
+    composer.render();
     labels.update(width, height);
   });
 }
