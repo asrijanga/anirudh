@@ -1,0 +1,26 @@
+.vbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 1.5ch;
+  height: 22px;
+  padding: 0 1ch calc(env(safe-area-inset-bottom) * 0) 0;
+  background: #ffb347;
+  color: #111;
+  font: 12px/22px 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.vbar-session { background: #111; color: #ffb347; padding: 0 1ch; font-weight: 700; }
+.vbar a { color: #111; text-decoration: none; padding: 0 0.5ch; }
+.vbar a:hover { background: rgba(0, 0, 0, 0.15); }
+.vbar a[aria-current='page'] { font-weight: 700; }
+.vbar a:focus-visible { outline: 1px solid #111; }
+.vbar-right { margin-left: auto; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 520px) {
+  .vbar-right { display: none; }
+}

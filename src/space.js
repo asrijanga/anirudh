@@ -15,6 +15,7 @@ import { createLabels } from './ui/labels.js';
 import { createStoryCard } from './ui/storyCard.js';
 import { createTerminal } from './ui/terminal.js';
 import { createCommands } from './ui/commands.js';
+import { mountVariantBar } from './ui/variantBar.js';
 import { worlds, star as starDef, comet as cometDef, profile, SUN, AU } from './data/worlds.js';
 import { AU_KM } from './physics/kepler.js';
 import { describeOrbit } from './physics/describe.js';
@@ -42,6 +43,8 @@ if (!hasWebGL()) {
 } else {
   start();
 }
+
+mountVariantBar('space');
 
 function start() {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -350,6 +353,9 @@ function start() {
       loader.classList.add('done');
       director.intro();
       shell.welcome(term);
+      // deep links like space.html#railhead fly straight to a world after the intro
+      const target = decodeURIComponent(location.hash.slice(1));
+      if (defs.has(target)) setTimeout(() => visit(target), reducedMotion ? 0 : 3800);
     }, stepDelay * 2);
   });
 

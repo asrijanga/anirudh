@@ -1,17 +1,30 @@
 # anirudh@system
 
-A personal page for Anirudh, rendered as a planetary system you can drive
-from a terminal.
+A personal page for Anirudh in three variants, like windows in a tmux
+session (switch between them from the bar at the bottom):
 
-    live      https://asrijanga.github.io/anirudh/
-    text      https://asrijanga.github.io/anirudh/text.html   (ANIRUDH(1), no WebGL)
+    0:term    https://asrijanga.github.io/anirudh/            a résumé you can type at
+    1:space   https://asrijanga.github.io/anirudh/space.html  a Kepler-accurate planetary system
+    2:text    https://asrijanga.github.io/anirudh/text.html   ANIRUDH(1), the man page
+
+The terminal résumé prints itself on load (any key skips the typing), needs
+no WebGL, and ships about 19 KB of JavaScript. Every skill it lists names the
+public work that shows it. `cat <project>` links each project to its world
+in space, e.g. space.html#railhead.
 
 ![System Anirudh](public/og.png)
 
 
-## The idea
+## Editing the résumé
 
-Anirudh keeps building solar systems, so his page is one. The star is him.
+Everything lives in `src/data/resume.js`. Fields only Anirudh can fill in
+(exact title, years, impact notes, LinkedIn, email) are marked `fill in`
+and stay hidden until they are set.
+
+
+## The space variant
+
+Anirudh keeps building solar systems, so this variant is one. The star is him.
 Every world orbiting it is a part of the story:
 
     star       anirudh            the centre of it all
@@ -43,7 +56,7 @@ simulations.
                 L4 libration, and fails CI if the system isn't stable.
 
 
-## Using it
+## Using the space variant
 
 Start typing anywhere and it lands on the prompt.
 
@@ -75,6 +88,9 @@ textures or models to download.
     scripts/stability.mjs     the N-body stability check
     src/ui/terminal.js        the shell: history, tab completion, clickable commands
     src/ui/commands.js        what the shell knows how to do
+    src/term.js               the terminal résumé variant
+    src/data/resume.js        résumé content, evidence-backed
+    src/ui/variantBar.js      the tmux-style variant switcher
     src/text.js               renders the man page from the same data
     docs/STORIES.md           how it was planned, story by story
 
