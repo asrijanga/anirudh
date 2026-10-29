@@ -67,9 +67,10 @@ function createOrbitRing(radius, opacity) {
   return line;
 }
 
+// Stations are built entirely by decorations; this invisible sphere is what you click.
 function createStationPlaceholder(def) {
   return new THREE.Mesh(
-    new THREE.OctahedronGeometry(def.radius * 0.8),
-    new THREE.MeshStandardMaterial({ color: def.palette[1], metalness: 0.5, roughness: 0.4 })
+    new THREE.SphereGeometry(def.radius * 1.3, 12, 12),
+    new THREE.MeshBasicMaterial({ visible: false })
   );
 }
