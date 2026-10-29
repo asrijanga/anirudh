@@ -3,16 +3,22 @@
 A personal page for Anirudh in three variants, like windows in a tmux
 session (switch between them from the bar at the bottom):
 
-    0:term    https://asrijanga.github.io/anirudh/            a résumé you can type at
+    0:term    https://asrijanga.github.io/anirudh/            Night City: a CRT terminal in a neon city
     1:space   https://asrijanga.github.io/anirudh/space.html  a Kepler-accurate planetary system
     2:text    https://asrijanga.github.io/anirudh/text.html   ANIRUDH(1), the man page
 
-The terminal résumé prints itself on load (any key skips the typing), needs
-no WebGL, and ships about 19 KB of JavaScript. Every skill it lists names the
-public work that shows it. `cat <project>` links each project to its world
-in space, e.g. space.html#railhead.
+`0:term` is all three.js: a rainy rooftop in a cyberpunk Seattle, a chunky
+CRT on a desk, and a terminal rendered into a canvas texture on its curved
+glass (scanlines, barrel distortion, RGB fringing, a rolling refresh bar).
+You type into the screen: history, tab completion, wheel/touch scrolling,
+clickable commands and links right on the glass, `theme neon|amber|green`.
+Keys on the desk keyboard light up as you type; drag to look around the roof.
+The tmux bar is drawn on the screen itself. Without WebGL (or with `?lite`)
+the same résumé shell runs as a plain DOM terminal.
 
-![System Anirudh](public/og.png)
+Every skill the résumé lists names the public work that shows it.
+`cat <project>` links each project to its world in space, e.g.
+space.html#railhead.
 
 
 ## Editing the résumé
@@ -88,7 +94,9 @@ textures or models to download.
     scripts/stability.mjs     the N-body stability check
     src/ui/terminal.js        the shell: history, tab completion, clickable commands
     src/ui/commands.js        what the shell knows how to do
-    src/term.js               the terminal résumé variant
+    src/term.js               terminal entry: Night City, or the DOM fallback
+    src/cyber/                Night City: canvas terminal, CRT, city, post
+    src/ui/resumeCommands.js  the résumé shell, shared by both terminals
     src/data/resume.js        résumé content, evidence-backed
     src/ui/variantBar.js      the tmux-style variant switcher
     src/text.js               renders the man page from the same data

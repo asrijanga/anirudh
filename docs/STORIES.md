@@ -180,3 +180,37 @@ Acceptance criteria
 - Résumé content lives in `src/data/resume.js`. Skills are listed with the
   public evidence for each, so nothing is claimed without proof. Fields
   only Anirudh can fill in (roles, years) are marked and hidden until set.
+
+## Story 9 — Neon Terminal
+*Feedback: "can we emulate a terminal-style web, cyberpunk, all in three.js?
+That's what I meant."* The terminal variant should not be a web page that
+looks like a terminal; it should be a terminal inside a three.js world.
+
+**As** a visitor, **I want** to stand on a rain-soaked rooftop in a neon
+city and type at a glowing CRT, **so that** the résumé feels like a place.
+
+Acceptance criteria
+- `/` renders entirely in three.js: no DOM UI beyond an invisible input
+  for the keyboard and a screen-reader log.
+- **The terminal:** text is rendered into a canvas texture on a curved CRT
+  screen. A CRT shader adds barrel distortion, scanlines, RGB fringing,
+  flicker and a rolling refresh bar.
+  - It has a prompt, a blinking cursor, history, tab completion, wheel and
+    touch scrolling, and line wrapping with aligned two-column rows.
+  - Commands and links on the glass are clickable: raycast → UV → the same
+    barrel distortion → character cell.
+  - The tmux-style variant bar is drawn on the screen itself.
+  - `theme` switches phosphor colours: neon, amber, green.
+- **The world**, a cyberpunk Seattle at night:
+  - an instanced skyline (one draw call) with procedurally lit windows and neon roof strips
+  - a neon Space Needle and a giant `ANIRUDH` sign
+  - flying cars on traffic lanes, rain, fog and a wet rooftop
+  - a keyboard on the desk whose keys light up as you type
+- Post-processing: bloom, chromatic aberration, film grain, vignette.
+- On load the camera flies in from the skyline to the monitor and the
+  terminal boots. The boot screen fits on one screen: banner, `whoami`,
+  then a clickable `ls` of what to read next.
+- The same résumé commands drive both this terminal and the DOM fallback
+  (`src/ui/resumeCommands.js`). The fallback serves browsers without WebGL.
+- Works at phone size: the screen goes portrait and the text reflows to fewer columns.
+- `prefers-reduced-motion`: no fly-in, no flicker, no rolling bar.
