@@ -1,10 +1,10 @@
-import { createMeadow } from './meadow/meadow.js';
 import * as THREE from 'three';
+import './style.css';
+import { createMeadow } from './meadow/meadow.js';
 
 const canvas = document.createElement('canvas');
 canvas.id = 'meadow';
 canvas.setAttribute('aria-hidden', 'true');
-canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:-1;display:block';
 document.body.prepend(canvas);
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -20,7 +20,9 @@ resize();
 meadow.setView(0, 22, 1.5, 0, 5, -60);
 
 const timer = new THREE.Timer();
+let frames = 0;
 meadow.renderer.setAnimationLoop((now) => {
   timer.update(now);
   meadow.render(timer.getElapsed());
+  if (++frames === 2) canvas.classList.add('ready'); // fade in once there's a real frame
 });
