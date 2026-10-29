@@ -26,7 +26,8 @@ export function createCommands({ tour, defs, profile, visit, leave, step, curren
         ['date', 'the simulated date'],
         ['whoami', 'the short version'],
         ['neofetch', 'system information'],
-        ['text', 'the whole page as plain text'],
+        ['term', 'the terminal résumé variant'],
+        ['text', 'the plain text variant'],
         ['clear', 'clear the screen   (ctrl+l)'],
       ];
       for (const [cmd, desc] of rows) {
@@ -147,6 +148,10 @@ export function createCommands({ tour, defs, profile, visit, leave, step, curren
       window.location.href = 'text.html';
     },
 
+    term() {
+      window.location.href = './';
+    },
+
     clear(_, t) {
       t.clear();
     },
@@ -181,7 +186,7 @@ export function createCommands({ tour, defs, profile, visit, leave, step, curren
 
   function welcome(t) {
     t.print(`system anirudh: 1 star, ${worldIds.length - 1} worlds, 1 comet.`, 'hi');
-    t.print(['type ', { cmd: 'help' }, ', or try ', { cmd: 'tour' }, '  ', { cmd: 'ls' }, '  ', { cmd: 'neofetch' }, '  ', { cmd: 'text' }]);
+    t.print(['type ', { cmd: 'help' }, ', or try ', { cmd: 'tour' }, '  ', { cmd: 'ls' }, '  ', { cmd: 'scale' }, '  ', { cmd: 'term' }]);
   }
 
   return { commands, complete, welcome };

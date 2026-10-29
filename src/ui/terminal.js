@@ -1,6 +1,7 @@
 // A small shell pinned to the bottom of the page.
 // `commands` maps a name to (args, term) => void; `complete` returns candidates for tab completion.
-export function createTerminal(root, { commands, complete, prompt = () => '~' }) {
+// `scroll`: 'output' scrolls the output box (overlay layout); 'page' scrolls the window (full-screen layout).
+export function createTerminal(root, { commands, complete, prompt = () => '~', maxLines = 60, scroll = 'output' }) {
   root.innerHTML = `
     <div class="term-out" aria-live="polite"></div>
     <form class="term-line" autocomplete="off">
@@ -15,38 +16,68 @@ export function createTerminal(root, { commands, complete, prompt = () => '~' })
   const promptEl = root.querySelector('.term-prompt');
   const history = [];
   let historyIndex = 0;
-  const MAX_LINES = 60;
+  let follow = true; // auto-scroll on print; switched off while the boot sequence prints the résumé
 
   function renderPrompt() {
     promptEl.textContent = `anirudh@system:${prompt()}$`;
   }
 
-  // Lines can be plain strings or arrays of segments: strings and { cmd } (a clickable command).
-  function print(line = '', cls = '') {
-    const div = document.createElement('div');
-    div.className = `term-row ${cls}`.trim();
+  // Lines can be plain strings or arrays of segments: strings, { cmd } (a clickable command),
+  // { href } (a link) or { text, cls } (styled text).
+  function append(parent, line) {
     const segments = Array.isArray(line) ? line : [line];
     for (const seg of segments) {
-      if (typeof seg === 'string') div.appendChild(document.createTextNode(seg));
+      if (typeof seg === 'string') parent.appendChild(document.createTextNode(seg));
       else if (seg.cmd) {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'term-cmd';
         b.textContent = seg.label ?? seg.cmd;
         b.addEventListener('click', () => run(seg.cmd));
-        div.appendChild(b);
+        parent.appendChild(b);
       } else if (seg.href) {
         const a = document.createElement('a');
         a.href = seg.href;
         a.target = seg.href.startsWith('http') ? '_blank' : '_self';
         a.rel = 'noopener';
         a.textContent = seg.label ?? seg.href;
-        div.appendChild(a);
+        parent.appendChild(a);
+      } else if (seg.text != null) {
+        const span = document.createElement('span');
+        span.className = seg.cls ?? '';
+        span.textContent = seg.text;
+        parent.appendChild(span);
       }
     }
+  }
+
+  function print(line = '', cls = '') {
+    const div = document.createElement('div');
+    div.className = `term-row ${cls}`.trim();
+    append(div, line);
+    return emit(div);
+  }
+
+  // A two-column row; the first column is `width` characters wide (stacks on narrow screens).
+  function row(cells, { width = 16, cls = '' } = {}) {
+    const div = document.createElement('div');
+    div.className = `term-row cols ${cls}`.trim();
+    div.style.setProperty('--c1', `${width}ch`);
+    for (const cell of cells) {
+      const span = document.createElement('span');
+      append(span, cell);
+      div.appendChild(span);
+    }
+    return emit(div);
+  }
+
+  function emit(div) {
     out.appendChild(div);
-    while (out.children.length > MAX_LINES) out.firstChild.remove();
-    out.scrollTop = out.scrollHeight;
+    while (out.children.length > maxLines) out.firstChild.remove();
+    if (!follow) return div;
+    if (scroll === 'page') form.scrollIntoView({ block: 'end' });
+    else out.scrollTop = out.scrollHeight;
+    return div;
   }
 
   function clear() {
@@ -100,7 +131,29 @@ export function createTerminal(root, { commands, complete, prompt = () => '~' })
     }
   });
 
-  const api = { print, clear, run, input, renderPrompt };
+  // Type a command out character by character, then run it (used by the boot sequence).
+  async function type(line, { delay = 22, skip = () => false } = {}) {
+    for (const ch of line) {
+      if (skip()) break;
+      input.value += ch;
+      await new Promise((r) => setTimeout(r, delay));
+    }
+    input.value = '';
+    run(line);
+  }
+
+  const api = {
+    print,
+    row,
+    clear,
+    run,
+    type,
+    input,
+    renderPrompt,
+    set follow(v) {
+      follow = v;
+    },
+  };
   renderPrompt();
   return api;
 }

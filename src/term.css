@@ -1,0 +1,65 @@
+:root {
+  --bg: #07080c;
+  --ink: #e8e6e1;
+  --muted: #8b8f9c;
+  --amber: #ffb347;
+  --cyan: #7fd4ff;
+  --red: #ff6b6b;
+  --green: #9be38a;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); color: var(--ink); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: clamp(16px, 4vw, 40px) clamp(16px, 4vw, 40px) 64px;
+  font: 15px/1.65 var(--mono);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--amber); text-underline-offset: 3px; }
+::selection { background: var(--amber); color: #000; }
+.shell { max-width: 92ch; margin: 0 auto; }
+
+.term-row { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.65em; }
+.term-row.echo { color: var(--muted); margin-top: 14px; }
+.term-row.err { color: var(--red); }
+.term-row.dim { color: var(--muted); }
+.term-row.hi { color: var(--amber); }
+.term-row.head { color: var(--amber); font-weight: 700; margin-top: 6px; }
+.term-row.ok { color: var(--green); }
+.term-row.art { color: var(--amber); white-space: pre; overflow-wrap: normal; overflow-x: auto; }
+.term-row.indent { padding-left: 2ch; }
+.term-row.cols { display: grid; grid-template-columns: var(--c1, 16ch) 1fr; column-gap: 2ch; }
+.term-row .dim { color: var(--muted); }
+.term-cmd {
+  background: none; border: 0; padding: 0; font: inherit; color: var(--cyan); cursor: pointer;
+  text-decoration: underline; text-decoration-color: rgba(127, 212, 255, 0.4); text-underline-offset: 3px;
+}
+.term-cmd:hover { color: var(--amber); text-decoration-color: currentColor; }
+.term-cmd:focus-visible { outline: 1px solid var(--amber); }
+
+.term-line { display: flex; align-items: center; gap: 1ch; margin-top: 14px; }
+.term-prompt { color: var(--amber); white-space: nowrap; }
+.term-input {
+  flex: 1; min-width: 0; background: none; border: 0; outline: none; padding: 0;
+  color: var(--ink); font: 16px var(--mono); caret-color: var(--amber);
+}
+
+/* the sl train */
+.sl {
+  position: fixed; left: 0; top: 30%; z-index: 30; margin: 0; pointer-events: none;
+  color: var(--amber); font: 13px/1.2 var(--mono); white-space: pre;
+  animation: sl 7s linear forwards;
+}
+@keyframes sl { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+@media (max-width: 600px) {
+  body { font-size: 13.5px; }
+  .term-row.cols { grid-template-columns: 1fr; margin-bottom: 6px; }
+  .term-row.cols > span + span { padding-left: 2ch; }
+  .term-row.art { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sl { display: none; }
+}

@@ -1,5 +1,7 @@
 import './text.css';
 import { profile, star, worlds, comet } from './data/worlds.js';
+import { resume } from './data/resume.js';
+import { mountVariantBar } from './ui/variantBar.js';
 
 // Renders the whole system as a man page: ANIRUDH(1).
 const el = (tag, cls, text) => {
@@ -36,9 +38,32 @@ para(synopsis, `anirudh [--city ${profile.city.toLowerCase()}] [--work ${profile
 
 const desc = section('DESCRIPTION');
 for (const p of star.log.slice(0, 2)) para(desc, p);
-para(desc, 'This page is the plain text version of System Anirudh, a planetary system built in three.js where every world stands for something he has made or cares about. The 3D version has a shell; this one is just text.');
+para(desc, 'This page is the plain text variant. There is also a terminal you can type at, and an outer space variant where every world stands for something he has made or cares about.');
+
+const sk = section('SKILLS');
+for (const s of resume.skills) {
+  const item = el('div', 'world');
+  item.appendChild(el('h3', null, s.area));
+  const body = el('div', 'indent');
+  para(body, s.items.join(' · '));
+  para(body, `seen in: ${s.evidence.join(', ')}`).className = 'facts';
+  item.appendChild(body);
+  sk.appendChild(item);
+}
+
+const pr = section('PROJECTS');
+const prList = el('dl');
+for (const p of resume.projects) {
+  const dt = el('dt');
+  const a = el('a', null, p.id);
+  a.href = p.href;
+  dt.appendChild(a);
+  prList.append(dt, el('dd', null, `${p.blurb} (${p.lang})`));
+}
+pr.appendChild(prList);
 
 const ws = section('WORLDS');
+para(ws, 'In the outer space variant, each of these is a world on a real Keplerian orbit, checked for stability with a 10,000-year N-body simulation.');
 for (const w of worlds) {
   const item = el('div', 'world');
   item.appendChild(el('h3', null, `${w.id}`));
@@ -66,13 +91,16 @@ para(bugs, 'The 3D version keeps a couple of secrets. They are not documented he
 
 const see = section('SEE ALSO');
 const seeP = el('p');
+const aterm = el('a', null, 'anirudh-term(1)');
+aterm.href = './';
 const a3d = el('a', null, 'system-anirudh(3d)');
-a3d.href = './';
+a3d.href = 'space.html';
 const agh = el('a', null, 'github(1)');
 agh.href = profile.github;
-seeP.append(a3d, ', ', agh);
+seeP.append(aterm, ', ', a3d, ', ', agh);
 see.appendChild(seeP);
 
 const footer = el('footer', 'man-head');
 footer.append(el('span', null, 'System Anirudh'), el('span', 'mid', String(new Date().getFullYear())), el('span', null, 'ANIRUDH(1)'));
 man.appendChild(footer);
+mountVariantBar('text');

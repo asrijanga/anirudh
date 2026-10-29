@@ -12,7 +12,7 @@
 html { background: var(--bg); color: var(--ink); }
 body {
   margin: 0;
-  padding: clamp(16px, 5vw, 56px) 16px 64px;
+  padding: clamp(16px, 5vw, 56px) 16px 72px;
   font: 16px/1.7 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   -webkit-font-smoothing: antialiased;
 }

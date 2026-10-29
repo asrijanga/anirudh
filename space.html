@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>anirudh@system · outer space</title>
+    <meta name="description" content="Anirudh, rendered as a planetary system you can drive from a terminal. Seattle, Slack, trains, gardens and a lot of solar systems." />
+    <meta name="theme-color" content="#07080c" />
+    <meta property="og:title" content="anirudh@system" />
+    <meta property="og:description" content="A personal page rendered as a planetary system, with a shell. Type help." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://asrijanga.github.io/anirudh/" />
+    <meta property="og:image" content="https://asrijanga.github.io/anirudh/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <a class="skip" href="text.html">plain text version</a>
+
+    <div class="loader" id="loader" role="status" aria-live="polite">
+      <ol>
+        <li>igniting the star</li>
+        <li>setting worlds in orbit</li>
+        <li>laying track on railhead</li>
+        <li>watering verdance</li>
+        <li>connecting hashport</li>
+        <li>calculating the comet</li>
+      </ol>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <canvas id="scene" aria-label="An interactive 3D planetary system representing Anirudh"></canvas>
+
+    <header class="title" id="title">
+      <p class="eyebrow">$ whoami</p>
+      <h1>anirudh<span class="cursor" aria-hidden="true"></span></h1>
+      <p class="subtitle">Engineer at Slack. Lives in Seattle. Builds worlds in his spare time, and this page is one of them.</p>
+    </header>
+
+    <aside class="card" id="card" aria-live="polite"></aside>
+
+    <section class="term" id="term" aria-label="Terminal"></section>
+    <p class="status" id="status" aria-live="off"></p>
+
+    <div class="nowebgl" id="nowebgl" hidden>
+      <p>$ ./system-anirudh</p>
+      <p>error: this system needs WebGL to come online.</p>
+      <p>$ <a href="./">cd ~/terminal</a> &nbsp; or &nbsp; <a href="text.html">cat anirudh.txt</a></p>
+    </div>
+
+    <script type="module" src="/src/space.js"></script>
+  </body>
+</html>
