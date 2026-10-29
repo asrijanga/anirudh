@@ -1,98 +1,91 @@
-// The panel that tells each world's story.
+// Each world's story, shown as a terminal window.
 export function createStoryCard(root, { onClose, onPrev, onNext }) {
   root.innerHTML = `
-    <div class="card-scroll">
-      <p class="card-tag"></p>
+    <header class="win-bar">
+      <span class="win-path"></span>
+      <button type="button" class="win-close" aria-label="Back to overview (Esc)">[x]</button>
+    </header>
+    <div class="win-body">
+      <p class="win-cmd">$ cat log.txt</p>
       <h2 class="card-name"></h2>
+      <p class="card-tag"></p>
       <div class="card-log"></div>
-      <ol class="card-timeline"></ol>
+      <div class="card-timeline-wrap">
+        <p class="win-cmd">$ git log --reverse --oneline</p>
+        <ol class="card-timeline"></ol>
+      </div>
+      <div class="card-facts-wrap">
+        <p class="win-cmd">$ ls facts/</p>
+        <ul class="card-facts"></ul>
+      </div>
+      <p class="card-link-wrap"><span class="win-cmd">$ open </span><a class="card-link" target="_blank" rel="noopener"></a></p>
       <p class="card-coda"></p>
-      <ul class="card-facts"></ul>
-      <a class="card-link" target="_blank" rel="noopener"></a>
     </div>
-    <nav class="card-nav" aria-label="Voyage">
-      <button type="button" class="nav-prev" aria-label="Previous world">←</button>
-      <ol class="nav-dots"></ol>
-      <button type="button" class="nav-next" aria-label="Next world">→</button>
+    <nav class="win-nav" aria-label="Voyage">
+      <button type="button" class="nav-prev">[← prev]</button>
+      <span class="nav-count"></span>
+      <button type="button" class="nav-next">[next →]</button>
     </nav>
-    <button type="button" class="card-close" aria-label="Back to overview">✕</button>
   `;
   const $ = (s) => root.querySelector(s);
-  $('.card-close').addEventListener('click', onClose);
+  $('.win-close').addEventListener('click', onClose);
   $('.nav-prev').addEventListener('click', onPrev);
   $('.nav-next').addEventListener('click', onNext);
 
-  let dotsBuilt = false;
-  function buildDots(stops, onJump) {
-    const ol = $('.nav-dots');
-    ol.innerHTML = '';
-    stops.forEach((s, i) => {
-      const li = document.createElement('li');
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.title = s.name;
-      b.setAttribute('aria-label', s.name);
-      b.addEventListener('click', () => onJump(i));
-      li.appendChild(b);
-      ol.appendChild(li);
-    });
-    dotsBuilt = true;
-  }
+  const fill = (el, items, render) => {
+    el.innerHTML = '';
+    for (const item of items) el.appendChild(render(item));
+  };
 
-  function show(def, index) {
-    $('.card-tag').textContent = def.tag;
+  function show(def, index, total) {
+    $('.win-path').textContent = def.id === 'star' ? '~/' : `~/worlds/${def.id}`;
     $('.card-name').textContent = def.name;
-    const log = $('.card-log');
-    log.innerHTML = '';
-    for (const para of def.log) {
+    $('.card-tag').textContent = `# ${def.tag}`;
+
+    fill($('.card-log'), def.log, (text) => {
       const p = document.createElement('p');
-      p.textContent = para;
-      log.appendChild(p);
-    }
-    const timeline = $('.card-timeline');
-    timeline.innerHTML = '';
-    for (const { when, what } of def.timeline ?? []) {
+      p.textContent = text;
+      return p;
+    });
+
+    const timeline = def.timeline ?? [];
+    $('.card-timeline-wrap').hidden = !timeline.length;
+    fill($('.card-timeline'), timeline, ({ when, what }) => {
       const li = document.createElement('li');
       const time = document.createElement('span');
       time.className = 'when';
-      time.textContent = when;
+      time.textContent = when.padEnd(12, ' ');
       li.append(time, document.createTextNode(what));
-      timeline.appendChild(li);
-    }
-    const coda = $('.card-coda');
-    coda.textContent = def.coda ?? '';
-    coda.hidden = !def.coda;
+      return li;
+    });
 
-    const facts = $('.card-facts');
-    facts.innerHTML = '';
-    for (const f of def.facts ?? []) {
+    const facts = def.facts ?? [];
+    $('.card-facts-wrap').hidden = !facts.length;
+    fill($('.card-facts'), facts, (text) => {
       const li = document.createElement('li');
-      li.textContent = f;
-      facts.appendChild(li);
-    }
-    const link = $('.card-link');
-    link.hidden = !def.link;
+      li.textContent = text;
+      return li;
+    });
+
+    $('.card-link-wrap').hidden = !def.link;
     if (def.link) {
-      link.href = def.link.href;
-      link.textContent = `${def.link.label} ↗`;
+      $('.card-link').href = def.link.href;
+      $('.card-link').textContent = def.link.href.replace('https://', '');
     }
-    root.querySelectorAll('.nav-dots button').forEach((b, i) => b.classList.toggle('on', i === index));
+
+    $('.card-coda').textContent = def.coda ?? '';
+    $('.card-coda').hidden = !def.coda;
+
+    $('.nav-count').textContent = index >= 0 ? `${index + 1}/${total}` : '';
     root.classList.remove('swap');
     void root.offsetWidth; // restart the fade-in
     root.classList.add('open', 'swap');
-    root.querySelector('.card-scroll').scrollTop = 0;
+    $('.win-body').scrollTop = 0;
   }
 
   function hide() {
     root.classList.remove('open');
   }
 
-  return {
-    show,
-    hide,
-    buildDots,
-    get dotsBuilt() {
-      return dotsBuilt;
-    },
-  };
+  return { show, hide };
 }

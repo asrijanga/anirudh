@@ -13,7 +13,9 @@ import { createComet } from './scene/comet.js';
 import { createCameraDirector } from './scene/cameraDirector.js';
 import { createLabels } from './ui/labels.js';
 import { createStoryCard } from './ui/storyCard.js';
-import { worlds, star as starDef, comet as cometDef } from './data/worlds.js';
+import { createTerminal } from './ui/terminal.js';
+import { createCommands } from './ui/commands.js';
+import { worlds, star as starDef, comet as cometDef, profile } from './data/worlds.js';
 
 const STAR_RADIUS = 4;
 const TOUR = ['star', 'emerald', 'hashport', 'railhead', 'ferris', 'verdance', 'ares', 'swift', 'comet'];
@@ -30,6 +32,7 @@ function hasWebGL() {
 
 if (!hasWebGL()) {
   document.getElementById('nowebgl').hidden = false;
+  document.getElementById('loader').remove();
   canvas.remove();
 } else {
   start();
@@ -37,12 +40,11 @@ if (!hasWebGL()) {
 
 function start() {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.setClearColor(0x05060f, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x05060f);
+  scene.background = new THREE.Color(0x07080c);
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 3000);
   camera.position.set(-40, 90, 260);
 
@@ -62,7 +64,7 @@ function start() {
   scene.add(new THREE.AmbientLight(0x404a70, 0.35));
 
   // ---- lookup helpers ----
-  const defs = new Map([['star', starDef], ['comet', cometDef], ...worlds.map((w) => [w.id, w])]);
+  const defs = new Map([['star', starDef], ...worlds.map((w) => [w.id, w]), ['comet', cometDef]]);
   const getTarget = (id, out) => {
     if (id === 'star') return out.set(0, 0, 0);
     if (id === 'comet') return comet.getPosition(out);
@@ -98,14 +100,16 @@ function start() {
   const labels = createLabels(
     labelLayer,
     [
-      { id: 'star', name: starDef.name, tag: 'the star', getPosition: (v) => v.set(0, STAR_RADIUS * 1.25, 0) },
+      { id: 'star', name: 'anirudh', tag: 'the star', getPosition: (v) => v.set(0, STAR_RADIUS * 1.25, 0) },
       ...worlds.map((w) => ({
         id: w.id,
-        name: w.name,
+        name: w.id,
         tag: w.tag,
         getPosition: (v) => system.worldPosition(w.id, v).add(up.set(0, w.radius * 1.5, 0)),
+        // moons only get a label once you're close enough to tell them apart
+        showWhen: w.parent ? (p) => camera.position.distanceTo(p) < 30 : undefined,
       })),
-      { id: 'comet', name: 'The 2014 Comet', tag: 'the journey', getPosition: (v) => comet.getPosition(v).add(up.set(0, 1, 0)) },
+      { id: 'comet', name: 'comet', tag: 'the journey', getPosition: (v) => comet.getPosition(v).add(up.set(0, 1, 0)) },
     ],
     camera,
     STAR_RADIUS,
@@ -114,55 +118,122 @@ function start() {
 
   // ---- story card & voyage ----
   const title = document.getElementById('title');
-  const hud = document.getElementById('hud');
-  const cardEl = document.getElementById('card');
-  let tourIndex = -1;
+  let currentId = null;
 
-  const card = createStoryCard(cardEl, {
+  const card = createStoryCard(document.getElementById('card'), {
     onClose: () => leave(),
     onPrev: () => step(-1),
     onNext: () => step(1),
   });
-  card.buildDots(
-    TOUR.map((id) => defs.get(id)),
-    (i) => visit(TOUR[i])
-  );
 
   function visit(id) {
-    tourIndex = TOUR.indexOf(id);
+    currentId = id;
     director.focus(id, viewInfo(id));
-    card.show(defs.get(id), tourIndex);
+    card.show(defs.get(id), TOUR.indexOf(id), TOUR.length);
     labels.setActive(id);
     document.body.classList.add('focused');
     title.classList.add('dim');
-    hud.classList.add('hidden');
+    term?.renderPrompt();
     resize();
   }
 
   function step(delta) {
-    const next = (tourIndex + delta + TOUR.length) % TOUR.length;
+    const i = currentId ? TOUR.indexOf(currentId) : -1;
+    const next = i < 0 ? 0 : (i + delta + TOUR.length) % TOUR.length;
     visit(TOUR[next]);
   }
 
   function leave() {
-    if (director.mode === 'overview') return;
-    tourIndex = -1;
+    if (!currentId) return;
+    currentId = null;
     director.overview();
     card.hide();
     labels.setActive(null);
     document.body.classList.remove('focused');
     title.classList.remove('dim');
-    hud.classList.remove('hidden');
+    term?.renderPrompt();
     resize();
   }
 
-  document.getElementById('voyage').addEventListener('click', () => visit(TOUR[0]));
+  // ---- easter eggs ----
+  const toastEl = document.getElementById('toast');
+  let toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3200);
+  }
+
+  const pings = [];
+  const pingGeo = new THREE.SphereGeometry(0.18, 10, 10);
+  function slackPing() {
+    system.bodies.get('hashport').extras.ping();
+    const from = new THREE.Vector3();
+    for (const id of [...system.bodies.keys(), 'comet']) {
+      const mesh = new THREE.Mesh(pingGeo, new THREE.MeshBasicMaterial({ color: '#ecb22e', transparent: true }));
+      scene.add(mesh);
+      pings.push({ mesh, from: getTarget(id, from).clone(), start: performance.now(), dur: 1400 + Math.random() * 600 });
+    }
+    toast(`#general · ${system.bodies.size + 1} worlds said hi to anirudh`);
+  }
+  function updatePings() {
+    const now = performance.now();
+    for (let i = pings.length - 1; i >= 0; i--) {
+      const p = pings[i];
+      const k = (now - p.start) / p.dur;
+      if (k >= 1) {
+        scene.remove(p.mesh);
+        p.mesh.material.dispose();
+        pings.splice(i, 1);
+        continue;
+      }
+      const e = 1 - Math.pow(1 - k, 3);
+      p.mesh.position.copy(p.from).multiplyScalar(1 - e);
+      p.mesh.position.y += Math.sin(e * Math.PI) * 3;
+      p.mesh.material.opacity = 1 - k * 0.6;
+    }
+  }
+
+  let chooTimer;
+  function choo() {
+    controlsState.trainSpeed = 7;
+    clearTimeout(chooTimer);
+    chooTimer = setTimeout(() => (controlsState.trainSpeed = 1), 8000);
+    toast('railhead express: all aboard');
+  }
+
+  // ---- the shell ----
+  const shell = createCommands({
+    tour: TOUR,
+    defs,
+    profile,
+    visit,
+    leave,
+    step,
+    current: () => currentId,
+    slackPing,
+    choo,
+  });
+  const term = createTerminal(document.getElementById('term'), {
+    commands: shell.commands,
+    complete: shell.complete,
+    prompt: () => (!currentId || currentId === 'star' ? '~' : `~/worlds/${currentId}`),
+  });
 
   window.addEventListener('keydown', (e) => {
-    if (e.target.closest?.('input, textarea')) return;
-    if (e.key === 'ArrowRight') step(tourIndex < 0 ? 0 : 1);
-    else if (e.key === 'ArrowLeft') step(tourIndex < 0 ? 0 : -1);
-    else if (e.key === 'Escape') leave();
+    const typing = e.target === term.input;
+    const empty = !term.input.value;
+    if (e.key === 'Escape') {
+      term.input.blur();
+      leave();
+    } else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && (!typing || empty)) {
+      e.preventDefault();
+      step(e.key === 'ArrowRight' ? 1 : -1);
+    } else if (!typing && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey && !e.target.closest?.('a, button')) {
+      // like a real terminal: start typing anywhere and it lands on the prompt
+      term.input.focus();
+    }
   });
 
   // ---- picking: a click (not a drag) on a world flies there ----
@@ -188,11 +259,10 @@ function start() {
     if (o) visit(o.userData.worldId);
   });
 
-  // ---- post-processing: bloom on the star, glows and comet ----
+  // ---- post-processing: a little bloom on the star, glows and comet ----
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.3, 0.9);
-  composer.addPass(bloom);
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.3, 0.9));
   composer.addPass(new OutputPass());
 
   // ---- sizing: shift the projection so the focused world sits beside the card ----
@@ -202,13 +272,13 @@ function start() {
     width = window.innerWidth;
     height = window.innerHeight;
     const pr = Math.min(window.devicePixelRatio, 2);
+    const mobile = width < 760;
     renderer.setPixelRatio(pr);
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     const focused = document.body.classList.contains('focused');
-    const mobile = width < 760;
-    if (focused && mobile) camera.setViewOffset(width, height, 0, height * 0.22, width, height);
-    else if (focused) camera.setViewOffset(width, height, Math.min(220, width * 0.17), 0, width, height);
+    if (focused && mobile) camera.setViewOffset(width, height, 0, height * 0.24, width, height);
+    else if (focused) camera.setViewOffset(width, height, Math.min(240, width * 0.17), 0, width, height);
     else camera.clearViewOffset();
     camera.updateProjectionMatrix();
     starfield.userData.setPixelRatio(pr);
@@ -219,66 +289,10 @@ function start() {
   window.addEventListener('resize', resize);
   resize();
 
-  // ---- easter eggs: type "slack" or "choo" ----
-  const toastEl = document.getElementById('toast');
-  let toastTimer;
-  function toast(msg) {
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3200);
-  }
-
-  const pings = [];
-  const pingGeo = new THREE.SphereGeometry(0.18, 10, 10);
-  function slackPing() {
-    system.bodies.get('hashport').extras.ping();
-    const from = new THREE.Vector3();
-    for (const id of [...system.bodies.keys(), 'comet']) {
-      const mesh = new THREE.Mesh(pingGeo, new THREE.MeshBasicMaterial({ color: '#ecb22e', transparent: true }));
-      scene.add(mesh);
-      pings.push({ mesh, from: getTarget(id, from).clone(), start: performance.now(), dur: 1400 + Math.random() * 600 });
-    }
-    toast(`#general · ${system.bodies.size + 1} worlds said hi to Anirudh`);
-  }
-  function updatePings() {
-    const now = performance.now();
-    for (let i = pings.length - 1; i >= 0; i--) {
-      const p = pings[i];
-      const k = (now - p.start) / p.dur;
-      if (k >= 1) {
-        scene.remove(p.mesh);
-        p.mesh.material.dispose();
-        pings.splice(i, 1);
-        continue;
-      }
-      const e = 1 - Math.pow(1 - k, 3);
-      p.mesh.position.copy(p.from).multiplyScalar(1 - e);
-      p.mesh.position.y += Math.sin(e * Math.PI) * 3;
-      p.mesh.material.opacity = 1 - k * 0.6;
-    }
-  }
-
-  let chooTimer;
-  function choo() {
-    controlsState.trainSpeed = 7;
-    clearTimeout(chooTimer);
-    chooTimer = setTimeout(() => (controlsState.trainSpeed = 1), 8000);
-    toast('Railhead express: all aboard. Choo choo!');
-  }
-
-  let typed = '';
-  window.addEventListener('keydown', (e) => {
-    if (e.key.length !== 1) return;
-    typed = (typed + e.key.toLowerCase()).slice(-8);
-    if (typed.endsWith('slack')) slackPing();
-    else if (typed.endsWith('choo')) choo();
-  });
-
   // ---- boot: compile shaders behind the loader, then fly in ----
   const loader = document.getElementById('loader');
   const steps = [...loader.querySelectorAll('li')];
-  const stepDelay = reducedMotion ? 0 : 220;
+  const stepDelay = reducedMotion ? 0 : 160;
   const ticking = Promise.all(
     steps.map((li, i) => new Promise((r) => setTimeout(() => (li.classList.add('on'), r()), i * stepDelay)))
   );
@@ -286,7 +300,8 @@ function start() {
     setTimeout(() => {
       loader.classList.add('done');
       director.intro();
-    }, stepDelay * 1.5);
+      shell.welcome(term);
+    }, stepDelay * 2);
   });
 
   const timer = new THREE.Timer();

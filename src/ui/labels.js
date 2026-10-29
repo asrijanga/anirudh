@@ -2,14 +2,14 @@ import * as THREE from 'three';
 
 // HTML labels pinned to 3D anchors. Hidden when behind the camera or behind the star.
 export function createLabels(container, entries, camera, starRadius, onSelect) {
-  const items = entries.map(({ id, name, tag, getPosition }) => {
+  const items = entries.map(({ id, name, tag, getPosition, showWhen }) => {
     const el = document.createElement('button');
     el.className = 'label';
     el.type = 'button';
     el.innerHTML = `<span class="label-name">${name}</span><span class="label-tag">${tag}</span>`;
     el.addEventListener('click', () => onSelect(id));
     container.appendChild(el);
-    return { id, el, getPosition };
+    return { id, el, getPosition, showWhen };
   });
 
   const p = new THREE.Vector3();
@@ -21,7 +21,8 @@ export function createLabels(container, entries, camera, starRadius, onSelect) {
       item.getPosition(p);
       const occluded = behindStar(camera.position, p, starRadius);
       toP.copy(p).project(camera);
-      const visible = toP.z < 1 && !occluded && Math.abs(toP.x) < 1.1 && Math.abs(toP.y) < 1.1;
+      const visible =
+        toP.z < 1 && !occluded && Math.abs(toP.x) < 1.1 && Math.abs(toP.y) < 1.1 && (item.showWhen?.(p) ?? true);
       item.el.classList.toggle('hidden', !visible);
       if (!visible) continue;
       const x = (toP.x * 0.5 + 0.5) * width;
