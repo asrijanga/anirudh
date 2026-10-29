@@ -7,7 +7,7 @@ session (switch between them from the bar at the bottom).
 
 | window | page | what it is |
 |---|---|---|
-| `0:term` | [asrijanga.github.io/anirudh/](https://asrijanga.github.io/anirudh/) | Night City: a CRT terminal in a neon city |
+| `0:term` | [asrijanga.github.io/anirudh/](https://asrijanga.github.io/anirudh/) | Night City: a neon terminal above the city |
 | `1:space` | [asrijanga.github.io/anirudh/space.html](https://asrijanga.github.io/anirudh/space.html) | a Kepler-accurate planetary system |
 | `2:text` | [asrijanga.github.io/anirudh/text.html](https://asrijanga.github.io/anirudh/text.html) | ANIRUDH(1), the man page |
 
@@ -17,9 +17,9 @@ Handy deep links:
 [fly to emerald](https://asrijanga.github.io/anirudh/space.html#emerald) ·
 [the 2014 comet](https://asrijanga.github.io/anirudh/space.html#comet)
 
-`0:term` is all three.js: a rainy rooftop in a cyberpunk Seattle, a chunky
-CRT on a desk, and a terminal rendered into a canvas texture on its curved
-glass (scanlines, barrel distortion, RGB fringing, a rolling refresh bar).
+`0:term` is all three.js: a rooftop in a cyberpunk Seattle at night, a slim
+neon-edged display on a desk, and a terminal rendered crisply into a canvas
+texture on its screen. Bloom is tuned to catch the neon but never the text.
 You type into the screen: history, tab completion, wheel/touch scrolling,
 clickable commands and links right on the glass, `theme neon|amber|green`.
 Keys on the desk keyboard light up as you type; drag to look around the roof.
@@ -105,7 +105,7 @@ textures or models to download.
     src/ui/terminal.js        the shell: history, tab completion, clickable commands
     src/ui/commands.js        what the shell knows how to do
     src/term.js               terminal entry: Night City, or the DOM fallback
-    src/cyber/                Night City: canvas terminal, CRT, city, post
+    src/cyber/                Night City: canvas terminal, display, city, post
     src/ui/resumeCommands.js  the résumé shell, shared by both terminals
     src/data/resume.js        résumé content, evidence-backed
     src/ui/variantBar.js      the tmux-style variant switcher

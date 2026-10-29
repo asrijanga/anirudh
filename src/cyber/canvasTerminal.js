@@ -3,17 +3,17 @@
 
 export const THEMES = {
   neon: {
-    bg: '#06040f', ink: '#d6f6ff', dim: '#6f7aa3', hi: '#ff2a6d', head: '#f9f002', cmd: '#05d9e8',
+    bg: '#0a0a16', ink: '#e6f7ff', dim: '#8a93b8', hi: '#ff2a6d', head: '#f9f002', cmd: '#05d9e8',
     link: '#ff8ad8', err: '#ff3b5c', ok: '#3cffa0', art: '#ff2a6d', prompt: '#05d9e8',
     barBg: '#ff2a6d', barInk: '#06040f', glow: '#05d9e8', label: 'neon',
   },
   amber: {
-    bg: '#0a0602', ink: '#ffd9a0', dim: '#9a7748', hi: '#ffb347', head: '#ffcf70', cmd: '#ffe2b0',
+    bg: '#100a04', ink: '#ffe2b8', dim: '#b08a5a', hi: '#ffb347', head: '#ffcf70', cmd: '#ffe2b0',
     link: '#ffe2b0', err: '#ff7a4a', ok: '#ffe08a', art: '#ffb347', prompt: '#ffb347',
     barBg: '#ffb347', barInk: '#0a0602', glow: '#ffb347', label: 'amber phosphor',
   },
   green: {
-    bg: '#020a04', ink: '#b8ffc4', dim: '#4f8a5a', hi: '#5dff7a', head: '#d4ff9a', cmd: '#9dffb0',
+    bg: '#04100a', ink: '#c8ffd2', dim: '#6fa47a', hi: '#5dff7a', head: '#d4ff9a', cmd: '#9dffb0',
     link: '#9dffb0', err: '#ffd36b', ok: '#5dff7a', art: '#5dff7a', prompt: '#5dff7a',
     barBg: '#5dff7a', barInk: '#020a04', glow: '#5dff7a', label: 'P1 green phosphor',
   },
@@ -194,8 +194,6 @@ export function createCanvasTerminal({ commands, complete, host = 'nightcity', f
     const end = total - scrollOffset;
     const start = Math.max(0, end - contentRows);
 
-    ctx.shadowColor = T.glow;
-    ctx.shadowBlur = fontSize * 0.35;
     for (let i = start; i < end; i++) {
       const y = pad + (i - start) * lh;
       const isPrompt = i >= all.length;
@@ -216,7 +214,6 @@ export function createCanvasTerminal({ commands, complete, host = 'nightcity', f
         ctx.fillRect(pad + prompt.cursorCol * cw, y + 2, cw * 0.9, fontSize * 1.12);
       }
     }
-    ctx.shadowBlur = 0;
 
     if (scrollOffset > 0) {
       ctx.fillStyle = T.dim;
@@ -254,15 +251,12 @@ export function createCanvasTerminal({ commands, complete, host = 'nightcity', f
     const width = Math.max(...marquee.lines.map((l) => l.length)) * cw;
     const x = W - k * (W + width);
     const y0 = H / 2 - (marquee.lines.length * lh) / 2;
-    ctx.shadowColor = T.glow;
-    ctx.shadowBlur = fontSize * 0.5;
     marquee.lines.forEach((l, i) => {
       ctx.fillStyle = T.bg;
       ctx.fillRect(x - cw, y0 + i * lh, l.length * cw + 2 * cw, lh);
       ctx.fillStyle = T.hi;
       ctx.fillText(l, x, y0 + i * lh);
     });
-    ctx.shadowBlur = 0;
   }
 
   // ---------- commands ----------
