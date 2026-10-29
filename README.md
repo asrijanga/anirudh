@@ -22,7 +22,7 @@ neon-edged display on a desk, and a terminal rendered crisply into a canvas
 texture on its screen. Bloom is tuned to catch the neon but never the text.
 You type into the screen: history, tab completion, wheel/touch scrolling,
 clickable commands and links right on the glass, `theme neon|amber|green`.
-Keys on the desk keyboard light up as you type; drag to look around the roof.
+The screen fills the view (on phones it stretches to the phone's shape); drag to look around the roof.
 The tmux bar is drawn on the screen itself. Without WebGL (or with `?lite`)
 the same résumé shell runs as a plain DOM terminal.
 

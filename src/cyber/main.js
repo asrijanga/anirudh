@@ -1,17 +1,19 @@
 import * as THREE from 'three';
 import './cyber.css';
 import { createCanvasTerminal } from './canvasTerminal.js';
-import { createDisplay, createKeyboard } from './display.js';
+import { createDisplay } from './display.js';
 import { createCity } from './city.js';
 import { createPost } from './post.js';
 import { createResumeShell } from '../ui/resumeCommands.js';
 
 const DESK_TOP = 0.96;
-const LAYOUTS = {
-  // screen size in world units, terminal canvas size in pixels, font size in canvas pixels
-  landscape: { w: 1.92, h: 1.2, cw: 2048, ch: 1280, font: 34 },
-  portrait: { w: 1.2, h: 1.7, cw: 1152, ch: 1632, font: 40 },
-};
+// Screen size in world units, terminal canvas size in pixels, font size in canvas pixels.
+// Landscape is a 16:10 panel; portrait stretches to the phone's shape so the screen fills it.
+function layoutFor(aspect) {
+  if (aspect >= 0.8) return { key: 'landscape', portrait: false, w: 1.92, h: 1.2, cw: 2048, ch: 1280, font: 34 };
+  const h = Math.round(THREE.MathUtils.clamp((1.2 / aspect) * 0.92, 1.6, 2.6) * 20) / 20;
+  return { key: `portrait:${h}`, portrait: true, w: 1.2, h, cw: 1152, ch: Math.round((1152 * h) / 1.2), font: 40 };
+}
 
 export async function startNightCity() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -63,15 +65,10 @@ export async function startNightCity() {
   const shell = createResumeShell({ host: 'nightcity', themes: ['neon', 'amber', 'green'], reducedMotion });
   const term = createCanvasTerminal({ commands: shell.commands, complete: shell.complete, host: 'nightcity', form, input, srLog });
 
-  const keyboard = createKeyboard();
-  keyboard.group.position.set(0, DESK_TOP + 0.03, 0.5);
-  keyboard.group.rotation.x = 0.06;
-  scene.add(keyboard.group);
 
-  let layoutName = null;
+  let L = null;
   let display = null;
   function buildMonitor() {
-    const L = LAYOUTS[layoutName];
     term.resize(L.cw, L.ch, L.font);
     if (display) {
       scene.remove(display.group);
@@ -84,7 +81,6 @@ export async function startNightCity() {
   }
   term.onTheme = (_, T) => {
     display.setGlow(T.glow);
-    keyboard.setColor(T.glow);
   };
 
   // ---- camera framing: fit the monitor, leave a little city around it ----
@@ -92,16 +88,14 @@ export async function startNightCity() {
   const finalPos = new THREE.Vector3();
   const finalLook = new THREE.Vector3();
   function frame() {
-    const L = LAYOUTS[layoutName];
     display.screen.getWorldPosition(screenCenter);
     const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    // landscape leaves room for the city and the keyboard; phones favour readable text
-    const fill = layoutName === 'portrait' ? 0.88 : 0.78;
-    const d = Math.max((L.h + 0.45) / (2 * tanH * fill), (L.w + 0.45) / (2 * tanH * camera.aspect * fill));
-    // landscape looks down a little to show the keyboard; portrait centres the screen
-    const tilt = layoutName === 'portrait' ? 0.02 : 0.14;
-    finalLook.copy(screenCenter).add(new THREE.Vector3(0, -tilt * L.h, 0));
-    finalPos.copy(screenCenter).add(new THREE.Vector3(0, tilt * 1.6 * L.h, d));
+    // the screen fills most of the view, with a sliver of city around it
+    const fill = L.portrait ? 0.95 : 0.93;
+    const d = Math.max((L.h + 0.14) / (2 * tanH * fill), (L.w + 0.14) / (2 * tanH * camera.aspect * fill));
+    // look at the screen almost head-on, just a touch from above
+    finalLook.copy(screenCenter);
+    finalPos.copy(screenCenter).add(new THREE.Vector3(0, 0.04 * L.h, d));
   }
 
   let width = 0, height = 0;
@@ -115,9 +109,9 @@ export async function startNightCity() {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     post.setSize(width, height, Math.min(pr, width < 760 ? 1.5 : 2));
-    const next = width / height < 0.8 ? 'portrait' : 'landscape';
-    if (next !== layoutName) {
-      layoutName = next;
+    const next = layoutFor(width / height);
+    if (next.key !== L?.key) {
+      L = next;
       buildMonitor();
     }
     frame();
@@ -185,7 +179,6 @@ export async function startNightCity() {
     term.scroll(-Math.sign(e.deltaY) * Math.max(1, Math.round(Math.abs(e.deltaY) / 40)));
   }, { passive: false });
 
-  input.addEventListener('keydown', (e) => keyboard.press(e.key));
   window.addEventListener('keydown', (e) => {
     if (e.target === input || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace') input.focus({ preventScroll: true });
@@ -228,7 +221,6 @@ export async function startNightCity() {
     }
 
     city.update(t, dt);
-    keyboard.update(dt);
     if (term.tick(now)) display.texture.needsUpdate = true;
     display.update(t, power);
     post.composer.render();
