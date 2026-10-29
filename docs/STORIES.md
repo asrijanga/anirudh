@@ -106,3 +106,24 @@ Acceptance criteria
 - Easter egg: type `slack` to make every world send a ping to the star.
   Type `choo` to speed the train.
 - OG/meta tags, favicon, README with how it's built.
+
+## Story 6 — Terminal
+*Added after Anirudh said he is "a fan of terminal and text, simplicity and readability".*
+
+**As** Anirudh, **I want** the page to feel like a well-kept terminal and to
+read like good plain text, **so that** it looks like something I would have
+built for myself.
+
+Acceptance criteria
+- Monospace everywhere, amber-phosphor accent on near-black, solid
+  high-contrast panels, body text ≥15px with generous line height.
+- Header reads like a prompt: `$ whoami` → `anirudh`, one plain sentence.
+- A real command line pinned to the bottom of the page:
+  `help`, `ls`, `cd <world>` / `cd ..`, `cat`, `open`, `tour`, `next`,
+  `prev`, `whoami`, `neofetch`, `text`, `clear`, and the secrets (`slack`,
+  `choo`, `sudo`). Tab completion, ↑/↓ history, and clickable commands
+  for people who would rather not type.
+- Story cards become terminal windows (`$ cat log.txt`, `$ ls facts/`,
+  `$ open <url>`), with `[← prev] n/9 [next →]` text navigation.
+- `text.html`: the whole page as a readable man page, `ANIRUDH(1)`, with
+  no WebGL. Linked from the shell (`text`) and used as the no-WebGL fallback.
