@@ -93,7 +93,8 @@ in under a minute, **so that** I leave knowing what he does and how to
 reach him.
 
 Acceptance criteria
-- Content lives in one data file (`src/content.js`), so it can be edited
+- Content lives as semantic HTML in `index.html`, so it's readable
+  instantly, without JavaScript, and by search engines. It's editable
   without touching the scene.
 - Sections, top to bottom:
   1. **Hero:** "Anirudh Janga", "Senior Software Engineer at Slack ·
@@ -106,9 +107,9 @@ Acceptance criteria
      the Slack Engineering post.
   3. **Making things:** solar-system, chess-3d, garden-game, train-game,
      the Rust/Bevy experiment. One line each, linked.
-  4. **Photography:** *only if confirmed*. A link to Unsplash, and
-     optionally one or two of his own photos.
-  5. **Contact:** GitHub, plus LinkedIn and email once confirmed.
+  4. **Photography:** flowers, rivers, mountains and the Milky Way, with a
+     link to Unsplash.
+  5. **Contact:** GitHub, LinkedIn, Unsplash.
 - **Readability:** a single centred column (max ~64ch) on a frosted panel
   (backdrop blur plus a warm off-white or deep forest tint) with WCAG AA
   contrast. Typography: a humanist serif for headings and a clean sans for
@@ -160,9 +161,8 @@ Acceptance criteria
 **so that** the page is accurate and says what I want.
 
 Acceptance criteria
-- Every claim in `src/content.js` maps to a confirmed line in RESEARCH.md.
-  Unconfirmed items (Unsplash, university, years) stay hidden behind a flag
-  until approved.
+- Every claim on the page maps to a confirmed line in RESEARCH.md (all items
+  were confirmed on 2026-10-29).
 - Screenshots at desktop and phone sizes, across hero, middle and end
   scroll positions, are attached to the PR for review.
 - Merged to `main` and deployed to Pages via Actions.
@@ -171,5 +171,4 @@ Acceptance criteria
 
 ## Order of work
 M1 → M2 → M3 → M4 → M5 → M6, each merged to `main` when done.
-M3's content waits on the open questions at the end of RESEARCH.md; it can
-ship with only the confirmed items and fill in the rest later.
+Content questions are resolved (see RESEARCH.md).

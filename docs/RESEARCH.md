@@ -1,18 +1,21 @@
 # Research: who is Anirudh?
 
 Gathered from public web searches on 2026-10-29, so the one-pager's content
-comes from more than the GitHub profile. Every item has a source and a
-confidence level. **Anirudh confirms or corrects each one before it ships.**
+comes from more than the GitHub profile. Every item has a source.
+
+**Status: all items below were confirmed by Anirudh on 2026-10-29**,
+including the Unsplash account. Contact links on the page are GitHub,
+LinkedIn and Unsplash; no email is published.
 
 ## Identity
 
 | Claim | Source | Confidence |
 |---|---|---|
-| Full name **Anirudh Janga** | GitHub handle `asrijanga` (a-sri-**janga**), account email `janirudh…` (j-anirudh), [Slack Engineering](https://slack.engineering/empowering-engineers-with-ai/), [LinkedIn](https://www.linkedin.com/in/anirudhjanga/) | High (inferred; needs confirmation) |
-| **Senior Software Engineer at Slack** | Author byline on the Slack Engineering post (Nov 2024); LinkedIn lists Slack | High |
-| Based in **Seattle** | LinkedIn; GitHub profile | High |
-| **12+ years** in software engineering | LinkedIn summary | Medium (from a search snippet) |
-| Studied at **San José State University** | LinkedIn | Medium (from a search snippet; degree and year unknown) |
+| Full name **Anirudh Janga** | GitHub handle `asrijanga` (a-sri-**janga**), account email `janirudh…` (j-anirudh), [Slack Engineering](https://slack.engineering/empowering-engineers-with-ai/), [LinkedIn](https://www.linkedin.com/in/anirudhjanga/) | Confirmed |
+| **Senior Software Engineer at Slack** | Author byline on the Slack Engineering post (Nov 2024); LinkedIn lists Slack | Confirmed |
+| Based in **Seattle** | LinkedIn; GitHub profile | Confirmed |
+| **12+ years** in software engineering | LinkedIn summary | Confirmed |
+| Studied at **San José State University** | LinkedIn | Confirmed |
 
 ## Work: "Empowering Engineers with AI" (Slack Engineering, Nov 8 2024)
 
@@ -44,26 +47,24 @@ over-claiming individual ownership.
 - **train-game**: a railway tycoon in three.js
 - **rust-bevy-web-test**: a Rust/Bevy experiment built for the web
 
-## Possibly him (needs confirmation)
+## Photography (confirmed)
 
 - **Photographer on Unsplash: [@anirudhjanga](https://unsplash.com/@anirudhjanga)**,
   "Anirudh Janga", 24 photos. Interests are tagged astronomy, landscape, sky,
   space and star. The photos include pink roses, dahlias, rivers through valleys,
   a mountain range over water, trees by a river and Milky Way night skies.
-  The name and the interests (stars, gardens, landscapes) match the
-  GitHub work, but **nothing links them for certain**. If confirmed, it's a
-  strong thread for a meadow page: he photographs exactly this kind of place.
+  Confirmed as his. It's a strong thread for a meadow page: he
+  photographs exactly this kind of place.
 
 ## Ruled out
 
 Other Anirudhs in Seattle at Amazon or Microsoft, an Anirudh Janga at Excelra
 (Telangana), and various public figures named Anirudh. None of them match.
 
-## Open questions for Anirudh
+## Resolved questions
 
-1. Confirm the full name **Anirudh Janga**, and how you'd like it shown.
-2. Your exact current title, team and start year at Slack.
-3. Is the Unsplash account yours? If so, may the page link to it, or
-   feature a photo or two?
-4. Contact links to show: LinkedIn, email, anything else.
-5. Anything to leave out (e.g. the university, years of experience).
+1. Name: **Anirudh Janga**, confirmed.
+2. Title: **Senior Software Engineer at Slack**. Start year not given, so it stays off the page.
+3. Unsplash: his. The page links to it.
+4. Contact: GitHub, LinkedIn, Unsplash. No email on the page.
+5. Nothing to leave out: the university and 12+ years may appear.
