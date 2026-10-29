@@ -31,6 +31,9 @@ function placeOnSurface(obj, radius, lat, lon, sink = 0) {
   return obj;
 }
 
+// Props were designed for a reference planet radius; scale them with the actual planet.
+const propScale = (def, designRadius) => def.radius / designRadius;
+
 function randomSurfacePoint(rand) {
   return { lat: Math.asin(rand() * 2 - 1), lon: rand() * Math.PI * 2 };
 }
@@ -47,6 +50,7 @@ function seeded(seed) {
 /* ---------------- Emerald: Seattle ---------------- */
 function decorateEmerald({ def, body }) {
   const r = def.radius;
+  const k = propScale(def, 1.45);
   const lit = (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.2 });
 
   // The Space Needle, exaggerated so it reads from orbit.
@@ -61,7 +65,8 @@ function decorateEmerald({ def, body }) {
   const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.008, 0.12, 4), lit('#ffffff'));
   spire.position.y = 0.39;
   needle.add(legs, saucer, halo, spire);
-  body.add(placeOnSurface(needle, r, 0.83, 0.4, 0.01));
+  needle.scale.setScalar(k);
+  body.add(placeOnSurface(needle, r, 0.83, 0.4, 0.01 * k));
 
   // Rainier: a broad cone with a snow cap, off to the south-east.
   const mountain = new THREE.Group();
@@ -70,7 +75,8 @@ function decorateEmerald({ def, body }) {
   const snow = new THREE.Mesh(new THREE.ConeGeometry(0.105, 0.11, 20), lit('#ffffff'));
   snow.position.y = 0.155;
   mountain.add(rock, snow);
-  body.add(placeOnSurface(mountain, r, 0.72, 0.62, 0.03));
+  mountain.scale.setScalar(k);
+  body.add(placeOnSurface(mountain, r, 0.72, 0.62, 0.03 * k));
 
   // Cloud shell: noise-masked, drifting independently of the surface.
   const clouds = new THREE.Mesh(
@@ -227,6 +233,7 @@ function decorateHashport({ def, body }) {
 /* ---------------- Ares Archive: Mars data ---------------- */
 function decorateAres({ def, body }) {
   const r = def.radius;
+  const k = propScale(def, 1.15);
   const rand = seeded(7);
   const beamMat = new THREE.ShaderMaterial({
     uniforms: { uTime: { value: 0 } },
@@ -261,7 +268,7 @@ function decorateAres({ def, body }) {
   return {
     update(t) {
       beamMat.uniforms.uTime.value = t;
-      for (const b of beacons) b.g.scale.y = 0.6 + 0.4 * Math.sin(t * 1.3 + b.phase);
+      for (const b of beacons) b.g.scale.set(k, k * (0.6 + 0.4 * Math.sin(t * 1.3 + b.phase)), k);
     },
   };
 }
@@ -368,6 +375,7 @@ function decorateRailhead({ def, tiltGroup }) {
 
 /* ---------------- Ferris: Rust & Bevy ---------------- */
 function decorateFerris({ def, body }) {
+  const k = propScale(def, 0.5) * 0.75; // a smaller crab, so the moon still reads as a moon
   // Two little claws, so the crab is unmistakable up close.
   const mat = new THREE.MeshStandardMaterial({ color: '#f26b2a', roughness: 0.5 });
   const claws = [-1, 1].map((side) => {
@@ -378,13 +386,15 @@ function decorateFerris({ def, body }) {
     pincer.scale.set(1, 1.3, 0.7);
     pincer.position.y = 0.24;
     claw.add(arm, pincer);
-    body.add(placeOnSurface(claw, def.radius, 0.35, Math.PI / 2 + side * 0.55, 0.02));
+    claw.scale.setScalar(k);
+    body.add(placeOnSurface(claw, def.radius, 0.35, Math.PI / 2 + side * 0.55, 0.02 * k));
     return claw;
   });
   const eyeMat = new THREE.MeshBasicMaterial({ color: '#1a0d06' });
   [-1, 1].forEach((side) => {
     const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), eyeMat);
-    body.add(placeOnSurface(eye, def.radius, 0.45, Math.PI / 2 + side * 0.2, 0.01));
+    eye.scale.setScalar(k);
+    body.add(placeOnSurface(eye, def.radius, 0.45, Math.PI / 2 + side * 0.2, 0.01 * k));
   });
   return {
     update(t) {
@@ -396,6 +406,7 @@ function decorateFerris({ def, body }) {
 /* ---------------- Verdance: garden-game ---------------- */
 function decorateVerdance({ def, body }) {
   const r = def.radius;
+  const k = propScale(def, 1.5);
   const count = 520;
   const rand = seeded(2024);
   const petals = ['#ff8fb1', '#ffd36e', '#f7f7ff', '#c49bff', '#ff7a59', '#7fd4ff'];
@@ -415,8 +426,8 @@ function decorateVerdance({ def, body }) {
   for (let i = 0; i < count; i++) {
     const { lat, lon } = randomSurfacePoint(rand);
     const dir = new THREE.Vector3(Math.cos(lat) * Math.cos(lon), Math.sin(lat), Math.cos(lat) * Math.sin(lon));
-    const height = 0.05 + rand() * 0.08;
-    flowers.push({ dir, height, phase: rand() * Math.PI * 2, size: 0.016 + rand() * 0.018 });
+    const height = (0.05 + rand() * 0.08) * k;
+    flowers.push({ dir, height, phase: rand() * Math.PI * 2, size: (0.016 + rand() * 0.018) * k });
     heads.setColorAt(i, color.set(petals[(rand() * petals.length) | 0]));
   }
   stems.frustumCulled = heads.frustumCulled = false;

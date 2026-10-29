@@ -19,7 +19,7 @@ export function createLabels(container, entries, camera, starRadius, onSelect) {
   function update(width, height) {
     for (const item of items) {
       item.getPosition(p);
-      const occluded = behindStar(camera.position, p, starRadius);
+      const occluded = behindStar(camera.position, p, typeof starRadius === 'function' ? starRadius() : starRadius);
       toP.copy(p).project(camera);
       const visible =
         toP.z < 1 && !occluded && Math.abs(toP.x) < 1.1 && Math.abs(toP.y) < 1.1 && (item.showWhen?.(p) ?? true);

@@ -127,3 +127,56 @@ Acceptance criteria
   `$ open <url>`), with `[← prev] n/9 [next →]` text navigation.
 - `text.html`: the whole page as a readable man page, `ANIRUDH(1)`, with
   no WebGL. Linked from the shell (`text`) and used as the no-WebGL fallback.
+
+## Story 7 — Real Orbital Mechanics
+*Feedback: "the solar system needs a little realism and scale; that system
+would never be stable and would collapse in a second."* He's right: the
+first version had giant planets packed together with arbitrary speeds.
+
+**As** someone who builds solar-system simulations, **I want** the system
+to obey real physics and be provably stable, **so that** it holds up to
+the scrutiny of someone who knows what a Hill sphere is.
+
+Acceptance criteria
+- Every world has real Keplerian elements: semi-major axis in AU,
+  eccentricity, inclination, node, argument of periapsis, mean anomaly at
+  epoch, plus mass, radius, axial tilt and rotation period. Data lives in
+  `worlds.js`, the single source of truth for the renderer and the checks.
+- Positions are solved with Kepler's equation; periods come from Kepler's
+  third law (`P = 2π√(a³/μ)`), never hand-tuned.
+- The architecture is physically plausible:
+  - swift ≈ Mercury, emerald ≈ Earth, ares ≈ Mars, railhead ≈ a Jupiter-mass gas giant at 5.2 AU.
+  - verdance is a super-Earth-ish garden world in the habitable zone at 1.26 AU.
+  - hashport is a station parked at emerald's **L4 Lagrange point**, 60° ahead.
+  - ferris orbits railhead well inside its Hill sphere, like Ganymede.
+  - The comet is a massless Halley-type body (e ≈ 0.9).
+- Distances are true to scale (1 AU = 22 units). Sizes are compressed so
+  the worlds are visible, and the compression is stated openly. A
+  `scale true` command animates everything to real size.
+- A simulated clock: the shell shows the date, and `warp` changes the rate
+  (1 day/s … 1 year/s, or pause).
+- `npm run stability`: an N-body integration (symplectic leapfrog, all
+  pairwise gravity) of the full system for 10,000 years, plus a moon run.
+  It checks mutual Hill spacing, drift in a and e, closest approaches, and
+  that the L4 station keeps librating around 60°. It runs in CI and fails
+  the build if the system is not stable.
+- Each story card shows the world's orbit: `$ orbit --elements`.
+
+## Story 8 — Variants
+*Feedback: "this is more like a resume and shows a lot of my capabilities,
+can we have different variations? A terminal variant and an outer space one."*
+
+**As** a recruiter, colleague or friend, **I want** to pick how I read
+about Anirudh, **so that** I get the version that suits me.
+
+Acceptance criteria
+- `/`: **terminal**, the default. A full-screen shell that reads like a
+  résumé without typing anything: a banner, a summary, skills, projects and
+  experience printed on boot, with every command clickable. It needs no
+  WebGL and loads instantly.
+- `/space.html`: **outer space**, the 3D system from Stories 1–7.
+- `/text.html`: **plain text**, the man page.
+- A variant switcher in every variant, plus `space`, `text`, `term` commands.
+- Résumé content lives in `src/data/resume.js`. Skills are listed with the
+  public evidence for each, so nothing is claimed without proof. Fields
+  only Anirudh can fill in (roles, years) are marked and hidden until set.

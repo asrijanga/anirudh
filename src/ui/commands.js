@@ -1,5 +1,5 @@
 // The shell's vocabulary. Every command prints plain text; a few also move the camera.
-export function createCommands({ tour, defs, profile, visit, leave, step, current, slackPing, choo }) {
+export function createCommands({ tour, defs, profile, visit, leave, step, current, slackPing, choo, sim, describe }) {
   const worldIds = tour.filter((id) => id !== 'star');
 
   function resolve(name) {
@@ -21,6 +21,9 @@ export function createCommands({ tour, defs, profile, visit, leave, step, curren
         ['cat [world]', 'read a world\'s log'],
         ['open', 'open the current world\'s repo'],
         ['next / prev', 'step through the voyage   (or ← →)'],
+        ['warp [rate]', 'time per second: pause 1d 1w 1m 1y'],
+        ['scale [mode]', 'sizes: true or readable (distances are always true)'],
+        ['date', 'the simulated date'],
         ['whoami', 'the short version'],
         ['neofetch', 'system information'],
         ['text', 'the whole page as plain text'],
@@ -54,6 +57,33 @@ export function createCommands({ tour, defs, profile, visit, leave, step, curren
       t.print(def.name, 'hi');
       for (const p of def.log) t.print(p);
       for (const { when, what } of def.timeline ?? []) t.print(`${when.padEnd(12)}${what}`);
+      for (const line of describe(id)) t.print(line, 'dim');
+    },
+
+    warp([rate], t) {
+      if (!rate) return t.print(`warp: ${sim.warp}/s   options: ${sim.warps.join(' ')}`);
+      if (rate === '0' || rate === 'stop') rate = 'pause';
+      if (!sim.setWarp(rate)) return t.print(`warp: unknown rate ${rate}. try ${sim.warps.join(' ')}`, 'err');
+      t.print(rate === 'pause' ? 'time stopped. the orbits wait for you.' : `time warp: ${rate} per second`);
+    },
+
+    scale([mode], t) {
+      const on = mode === 'true' || mode === 'real';
+      if (mode && !on && mode !== 'readable') return t.print('scale: try `scale true` or `scale readable`', 'err');
+      if (!mode) {
+        t.print('distances: true (1 AU = 22 units). sizes: compressed with a square root so you can see them.');
+        return t.print(['try ', { cmd: 'scale true', label: 'scale true' }, ' to see how empty space really is.']);
+      }
+      sim.setTrueScale(on);
+      t.print(
+        on
+          ? 'true scale. the worlds shrink to specks: space is mostly space. labels still find them.'
+          : 'readable scale: sizes compressed (√), distances and periods still true.'
+      );
+    },
+
+    date(_, t) {
+      t.print(`${sim.date.toUTCString().slice(0, 16)}  (simulated, warp ${sim.warp}/s)`);
     },
 
     open([target], t) {
@@ -99,6 +129,7 @@ export function createCommands({ tour, defs, profile, visit, leave, step, curren
         ['', 'anirudh@system'],
         ['', '--------------'],
         ['os', 'System Anirudh (three.js)'],
+        ['physics', 'Kepler orbits, N-body checked'],
         ['host', `${profile.city}, WA`],
         ['work', profile.company],
         ['uptime', `on github since ${profile.githubSince}`],
@@ -142,6 +173,8 @@ export function createCommands({ tour, defs, profile, visit, leave, step, curren
 
   function complete(parts, word) {
     const w = word.toLowerCase();
+    if (parts[0] === 'warp') return sim.warps.filter((c) => c.startsWith(w));
+    if (parts[0] === 'scale') return ['true', 'readable'].filter((c) => c.startsWith(w));
     const pool = parts.length ? ['..', ...tour] : Object.keys(commands).filter((c) => !['slack', 'choo', 'sudo'].includes(c));
     return pool.filter((c) => c.startsWith(w));
   }

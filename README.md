@@ -25,6 +25,24 @@ Every world orbiting it is a part of the story:
     comet      the timeline       2014 -> now, tail pointing away from the star
 
 
+## Physics
+
+The system is meant to survive scrutiny from someone who writes solar-system
+simulations.
+
+    orbits      real Keplerian elements (a, e, i, node, periapsis, M0),
+                solved with Kepler's equation; periods from Kepler's third law
+    scale       distances true (1 AU = 22 units); sizes compressed with a
+                square root so you can see them. `scale true` shows reality
+    time        simulated clock from today's date; `warp 1d|1w|1m|1y|pause`
+    hashport    parked at emerald's L4 Lagrange point
+    ferris      orbits railhead at ~2% of its Hill radius, like Ganymede
+    proof       npm run stability: a 10,000-year N-body integration
+                (symplectic leapfrog, full pairwise gravity). It checks Hill
+                spacing, drift in a and e, close encounters, energy error and
+                L4 libration, and fails CI if the system isn't stable.
+
+
 ## Using it
 
 Start typing anywhere and it lands on the prompt.
@@ -36,6 +54,8 @@ Start typing anywhere and it lands on the prompt.
     cat [world]    read a world's log
     open           open the current world's repo
     next / prev    step through the voyage (or <- ->)
+    warp [rate]    simulated time per second
+    scale [mode]   true or readable sizes
     neofetch       system information
     text           the plain text version
 
@@ -51,6 +71,8 @@ textures or models to download.
     src/data/worlds.js        all content, in one file
     src/scene/                star, planets, orbits, decorations, comet, camera
     src/shaders/noise.js      simplex noise + fbm shared by the shaders
+    src/physics/kepler.js     two-body orbital mechanics (AU, days, solar masses)
+    scripts/stability.mjs     the N-body stability check
     src/ui/terminal.js        the shell: history, tab completion, clickable commands
     src/ui/commands.js        what the shell knows how to do
     src/text.js               renders the man page from the same data

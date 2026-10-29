@@ -14,6 +14,10 @@ export function createStoryCard(root, { onClose, onPrev, onNext }) {
         <p class="win-cmd">$ git log --reverse --oneline</p>
         <ol class="card-timeline"></ol>
       </div>
+      <div class="card-orbit-wrap">
+        <p class="win-cmd">$ orbit --elements</p>
+        <pre class="card-orbit"></pre>
+      </div>
       <div class="card-facts-wrap">
         <p class="win-cmd">$ ls facts/</p>
         <ul class="card-facts"></ul>
@@ -37,7 +41,7 @@ export function createStoryCard(root, { onClose, onPrev, onNext }) {
     for (const item of items) el.appendChild(render(item));
   };
 
-  function show(def, index, total) {
+  function show(def, index, total, orbitLines = []) {
     $('.win-path').textContent = def.id === 'star' ? '~/' : `~/worlds/${def.id}`;
     $('.card-name').textContent = def.name;
     $('.card-tag').textContent = `# ${def.tag}`;
@@ -58,6 +62,9 @@ export function createStoryCard(root, { onClose, onPrev, onNext }) {
       li.append(time, document.createTextNode(what));
       return li;
     });
+
+    $('.card-orbit-wrap').hidden = !orbitLines.length;
+    $('.card-orbit').textContent = orbitLines.join('\n');
 
     const facts = def.facts ?? [];
     $('.card-facts-wrap').hidden = !facts.length;
