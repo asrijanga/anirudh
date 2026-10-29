@@ -12,6 +12,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <div class="loader" id="loader" role="status" aria-live="polite">
+      <div>
+        <p class="boot">System Anirudh · boot sequence</p>
+        <ol>
+          <li>igniting the star</li>
+          <li>setting worlds in orbit</li>
+          <li>laying track on Railhead</li>
+          <li>watering Verdance</li>
+          <li>connecting Hashport</li>
+          <li>calculating the comet</li>
+        </ol>
+      </div>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
     <canvas id="scene" aria-label="An interactive 3D planetary system representing Anirudh"></canvas>
 
     <header class="title" id="title">
