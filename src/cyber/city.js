@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-// Night City Seattle: a rainy rooftop above a neon skyline.
+// Night City Seattle: a rooftop above a neon skyline.
 // The rooftop is at y = 0; the street is far below at y = STREET.
 const STREET = -40;
 const NEON = ['#ff2a6d', '#05d9e8', '#f9f002', '#b967ff', '#3cffa0'];
@@ -20,7 +20,7 @@ function seeded(seed) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export function createCity({ reducedMotion }) {
+export function createCity() {
   const group = new THREE.Group();
   const updaters = [];
   const rand = seeded(2077);
@@ -41,13 +41,8 @@ export function createCity({ reducedMotion }) {
   group.add(traffic.group);
   updaters.push(traffic.update);
 
-  const rain = createRain(rand, reducedMotion);
-  group.add(rain.mesh);
-  updaters.push(rain.update);
-
   return {
     group,
-    rain: rain.mesh,
     update(t, dt) {
       for (const u of updaters) u(t, dt);
     },
@@ -365,45 +360,4 @@ function createTraffic(rand) {
       mesh.instanceMatrix.needsUpdate = true;
     },
   };
-}
-
-/* ---------- rain, recycled in the vertex shader ---------- */
-function createRain(rand, reducedMotion) {
-  const count = 5000;
-  const pos = new Float32Array(count * 6);
-  const seed = new Float32Array(count * 2);
-  for (let i = 0; i < count; i++) {
-    const x = (rand() - 0.5) * 40, z = (rand() - 0.5) * 40 - 6, y = rand() * 30;
-    pos.set([x, y, z, x, y, z], i * 6);
-    const s = rand();
-    seed[i * 2] = s;
-    seed[i * 2 + 1] = s + 1; // marks the bottom end of the streak
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
-  const mesh = new THREE.LineSegments(
-    geo,
-    new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uSpeed: { value: reducedMotion ? 0 : 1 } },
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      vertexShader: /* glsl */ `
-        attribute float aSeed; uniform float uTime; uniform float uSpeed; varying float vA;
-        void main(){
-          float s = fract(aSeed);
-          float tail = step(1.0, aSeed);
-          float y = mod(position.y - uTime * uSpeed * (22.0 + s * 8.0), 30.0) - 4.0;
-          vec3 p = vec3(position.x + y * 0.08, y - tail * 0.7, position.z);
-          vA = 0.25 + 0.25 * s;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-        }`,
-      fragmentShader: /* glsl */ `
-        varying float vA;
-        void main(){ gl_FragColor = vec4(vec3(0.55, 0.75, 1.0) * vA, vA); }`,
-    })
-  );
-  mesh.frustumCulled = false;
-  return { mesh, update: (t) => (mesh.material.uniforms.uTime.value = t) };
 }

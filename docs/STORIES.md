@@ -214,3 +214,25 @@ Acceptance criteria
   (`src/ui/resumeCommands.js`). The fallback serves browsers without WebGL.
 - Works at phone size: the screen goes portrait and the text reflows to fewer columns.
 - `prefers-reduced-motion`: no fly-in, no flicker, no rolling bar.
+
+## Story 10 — Readable Neon
+*Feedback: "remove the CRT effect, the screen is hard to read; also remove
+the rain. Make it a very cool cyberpunk style, but readable."*
+
+**As** someone reading a résumé, **I want** crisp text first and atmosphere
+second, **so that** the style never gets in the way of the content.
+
+Acceptance criteria
+- The CRT becomes a slim, flat widescreen panel with no barrel
+  distortion, scanlines, flicker, RGB fringing, rolling bar or glare. The
+  cyberpunk look moves to a glowing cyan and magenta neon edge around the
+  panel.
+- Text is rendered without glow blur, at a larger size, on a
+  higher-resolution texture (2048×1280, or 1152×1632 in portrait), and
+  isn't tone-mapped, so colours stay true.
+- Bloom only catches real neon (signs, edges, windows): its threshold sits
+  above the screen's brightest text. Full-screen chromatic aberration and
+  grain are gone; a soft vignette stays.
+- No rain.
+- Clicks map straight from UV to character cell, now that there's no distortion.
+- Portrait framing centres the screen.
