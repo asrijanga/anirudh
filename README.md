@@ -1,11 +1,21 @@
 # anirudh@system
 
 A personal page for Anirudh in three variants, like windows in a tmux
-session (switch between them from the bar at the bottom):
+session (switch between them from the bar at the bottom).
 
-    0:term    https://asrijanga.github.io/anirudh/            Night City: a CRT terminal in a neon city
-    1:space   https://asrijanga.github.io/anirudh/space.html  a Kepler-accurate planetary system
-    2:text    https://asrijanga.github.io/anirudh/text.html   ANIRUDH(1), the man page
+**Live: [asrijanga.github.io/anirudh](https://asrijanga.github.io/anirudh/)**
+
+| window | page | what it is |
+|---|---|---|
+| `0:term` | [asrijanga.github.io/anirudh/](https://asrijanga.github.io/anirudh/) | Night City: a CRT terminal in a neon city |
+| `1:space` | [asrijanga.github.io/anirudh/space.html](https://asrijanga.github.io/anirudh/space.html) | a Kepler-accurate planetary system |
+| `2:text` | [asrijanga.github.io/anirudh/text.html](https://asrijanga.github.io/anirudh/text.html) | ANIRUDH(1), the man page |
+
+Handy deep links:
+[lite terminal (no WebGL)](https://asrijanga.github.io/anirudh/?lite) ·
+[fly to railhead](https://asrijanga.github.io/anirudh/space.html#railhead) ·
+[fly to emerald](https://asrijanga.github.io/anirudh/space.html#emerald) ·
+[the 2014 comet](https://asrijanga.github.io/anirudh/space.html#comet)
 
 `0:term` is all three.js: a rainy rooftop in a cyberpunk Seattle, a chunky
 CRT on a desk, and a terminal rendered into a canvas texture on its curved
