@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { heightAt } from './terrain.js';
 import { fbm2, seeded } from './noise.js';
 import { WIND_GLSL, LIGHT_GLSL, MEADOW } from './grass.js';
+import { distanceToPath } from './path.js';
 
 // The wildflowers of Rainier's subalpine meadows, each built from a few primitives (metres).
 
@@ -147,6 +148,7 @@ export function createFlowers(uniforms, total) {
       // drifts: each species has its own patches
       const field = fbm2(x * 0.06 + seed * 31.7, z * 0.06 - seed * 17.3, 3);
       if (field < 0.05 + rand() * 0.25) continue;
+      if (distanceToPath(x, z) < 2.6) continue; // keep the walking path clear of the lens
       offsets.set([x, heightAt(x, z) - 0.01, z], n * 3);
       params.set([rand() * Math.PI * 2, 1.25 + rand() * 0.7, 0.85 + rand() * 0.3, 0], n * 4);
       n++;
