@@ -172,3 +172,129 @@ Acceptance criteria
 ## Order of work
 M1 → M2 → M3 → M4 → M5 → M6, each merged to `main` when done.
 Content questions are resolved (see RESEARCH.md).
+
+---
+
+# Part 2 — The Wind (Flower ambiance)
+
+*Feedback: "I am going for the atmosphere and ambiance of the flower game."*
+Read as **Flower** (thatgamecompany, 2009): you don't walk through the meadow,
+**you are the wind**. A stream of petals rides on you over endless rolling hills
+of grass. Closed buds open as you pass, each one adding its petals to your
+stream, and colour floods back into the land behind you. It's calm, warm and
+wordless, close to a lullaby.
+
+The content (RESEARCH.md, the panels in `index.html`) stays exactly as it is.
+This part changes how the world **feels**.
+
+### What changes from Part 1
+| Part 1 (realistic PNW) | Part 2 (Flower) |
+|---|---|
+| Rainier, fir woods closing in | open, endless rolling hills, a few lone trees on far crests |
+| physically based sky, white glare | a painted warm gradient sky, a soft sun, gentle bloom we control |
+| knee-high grass, flower specks | a deep, lush sea of grass with large visible wind waves |
+| butterflies | **a petal stream**: the wind made visible, following you |
+| static flowers | **buds that bloom** as the stream passes, and colour returns to the field |
+| silent | optional ambient sound: wind, and a soft chime per bloom (opt-in) |
+
+### Ground rules (unchanged)
+Readability first: text stays on solid-enough panels at AA contrast. One page,
+one scene. Content renders before and without WebGL. Respect
+`prefers-reduced-motion`.
+
+## Story F1 — Rolling Hills
+**As** a visitor, **I want** wide, soft, endless hills under a warm sky,
+**so that** the world feels open and dreamy rather than enclosed.
+
+Acceptance criteria
+- Terrain becomes broad, smooth swells (long-wavelength noise, rounded
+  crests) stretching to the horizon. No forest ring, no Rainier.
+- Distant hills fade into a warm haze, layered like a painting (three or four
+  value steps toward the horizon).
+- Three to five lone deciduous trees on far crests: round, soft canopies,
+  silhouetted against the light.
+- **Painted sky:** our own gradient shader (warm apricot horizon, rose
+  mid-sky, soft blue zenith) with a large soft sun disc and halo, and a
+  few slow, flat, painterly cloud bands. All values stay in a controlled
+  range, so bloom is safe again.
+- **Grade:** warm and slightly saturated, lifted shadows (never black),
+  soft bloom on the sun, highlights and petals only, and a gentle vignette.
+
+## Story F2 — A Sea of Grass
+**As** a visitor, **I want** the grass to move like water, **so that** I can
+see the wind.
+
+Acceptance criteria
+- Denser, taller, lusher grass that covers the hills to the horizon. A
+  dense near field plus a cheap far field (instanced cards or a shader on the
+  terrain) carries the texture into the distance.
+- **Wind waves:** broad bands of gust roll across the field in one
+  direction, so the sheen visibly travels over the hills (tips brighten as
+  they bow towards the light).
+- Colour runs from deep green at the roots to sunlit yellow-green tips, with
+  backlit glow when looking towards the sun.
+- The pointer **is** wind too: the grass bows in a trail behind the cursor.
+
+## Story F3 — The Petal Stream
+**As** a visitor, **I want** a ribbon of petals that flows with me,
+**so that** I feel like the wind carrying them.
+
+Acceptance criteria
+- 150–400 petals (instanced, curved, two-sided, lit, slightly translucent),
+  each fluttering and tumbling as it follows a smooth flowing path.
+- The stream leads the camera along the scroll walk, sweeping low over
+  the grass and curling around blooms. On desktop it bends toward the
+  cursor, as if the pointer were the wind.
+- It starts small (a handful of petals) and grows as flowers bloom (F4).
+  Each bloom adds petals of its own colour.
+- Reduced motion: the stream rests gently in place. No sweeping.
+
+## Story F4 — Bring Back the Colour
+**As** a visitor, **I want** the field to come alive as I read, **so that**
+scrolling through Anirudh's story literally makes the meadow bloom.
+
+Acceptance criteria
+- Flowers start as **closed buds**. When the petal stream passes nearby they
+  open over about a second (petals unfold and lift), with a small burst of
+  light, and add petals to the stream.
+- Clusters of buds sit along the walk, roughly one cluster per section:
+  - Hero: a first cluster that blooms on load
+  - At Slack: a field of violet
+  - Making things: scarlet and gold
+  - Photography: white
+  - Say hello: everything at once at golden hour
+- **Colour returns:** the land starts slightly desaturated and dusky. A
+  "life" field (painted into a small texture as blooms happen) saturates and
+  warms the grass and terrain around every opened flower, spreading slowly.
+  By the end of the page the whole valley is in colour.
+- Scrolling back up doesn't undo it: what has bloomed stays bloomed.
+
+## Story F5 — Sound (opt-in)
+**As** a visitor who wants the full feeling, **I want** soft ambient sound,
+**so that** the meadow feels alive. It's never on by default.
+
+Acceptance criteria
+- A small, quiet "sound" toggle in the corner, off by default, keyboard
+  accessible, and remembered for the visit.
+- Generated with the Web Audio API, with no audio files:
+  - a soft wind bed of filtered noise, swelling with the gusts
+  - a gentle pentatonic chime for each bloom, pitched by colour, panned by position
+  - a low warm drone pad
+- Volume stays modest. Sound pauses when the tab is hidden.
+
+## Story F6 — Polish, Performance & Review
+**As** Anirudh, **I want** the new ambiance to stay fast, readable and
+accessible, **so that** nothing from Part 1 regresses.
+
+Acceptance criteria
+- Adaptive quality still scales the grass, petals, bloom and far field
+  on phones and weaker machines, with the same frame-rate watcher.
+- axe-core still reports 0 violations, the panels still pass AA contrast
+  against the new brighter scene, the no-WebGL fallback gets a warm
+  gradient to match, and reduced motion is honoured throughout.
+- A new OG image comes from the bloomed valley.
+- Review screenshots (hero, mid-page with part of the valley bloomed, end
+  with everything in colour) at desktop and phone sizes go in `docs/review/`.
+
+## Order of work
+F1 → F2 → F3 → F4 → F5 → F6, each merged to `main` when done.
